@@ -1,0 +1,20 @@
+The choice for MPI was justified by the need for industry and the universal aspect of the message passing interface paradigm. For the n-body problem, the messages to be passed are the mainly the updated positions of the bodies which were calculated on the other nodes. An efficient way of storing the data must be conceived to minimize the transfer times and allow the Barnes-Hut algorithm to run. As mentionned previously, two strategies are implemented. A brute-force approach and the Barnes-Hut algorithm. The strategy for the first is clear whereas for the second further work needs doing.
+\subsection{Brut-Force flowgraph} With this methodology the only data which is exchanged is the updated positions. For this brut-force approach, this data must be updated at each time step, hence less data cannot be transfered. The output of the positions at each time step could be done in parallel using MPI's write methods, but at this stage this is not done. 
+\begin{figure}[H]
+\centering
+\inputTikz{0.95}{../figures/flowchart_bf.tex}
+\caption{Flowchart for the brut-force parallel implementation. Once the initial data is sent to all nodes, they update the positions of all bodies which are assigned to them, then send to all of the other nodes the updates positions. At the end of a time step, the positions are synchronized and a new time step can be calculated. The main node will write the positions to a file at each time iteration.}
+\label{fig:flow_chart_bf}
+\end{figure}
+
+\subsection{Brut-Force timing diagram}
+In this case, the slowest path is straightforward to estimate. The assumption that the intial distribution of the data between the nodes is done sequentially. Once the data is distributed and the first time step calculated, the idle time of each node is only the time it takes for the master node to write the data to a file. This step could also be parallelized by either using an ``MPI\_Write'', or getting each node to write a file locally and then regrouping all the data to the main node. 
+\begin{figure}[H]
+\centering
+\inputTikz{1}{../figures/timing_bf.tex}
+\caption{Timing diagram for the BF approach. The block of computations is repeated until the final time is reached. The circled characters next to the coloured boxes refer to Figure \ref{fig:flow_chart_bf}, to emphasize that they are the same steps.}
+\label{fig:timing_bf}
+\end{figure} 
+
+\subsection{Quad-Tree}
+The flowgraph and timing diagram will be very similar. The main differences will reside in the initialization processes which requires to build the full tree and the type and amout of data exchange between each node. 

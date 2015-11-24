@@ -1,0 +1,29 @@
+The n-body simulations are relevant for many fields of science, from planet and galaxy interactions all the way down to molecular dynamics. The computational challenge comes from the fact that all bodies have some effect on all the others. The effect comes from the gravitational pull each body has on the others, the force one body of mass $m_1$ has on another of mass $m_2$ depends on the distance between each body $r$ and the gravitational constant $G$. The formula is the following:
+\[\boldsymbol{\norm{F}} = G\frac{m_1m_2}{r^2}\]
+where $G=\SI{6.674e-11}{Nm^{2}kg^{-2}}$. The direction of the force is given by the center of masses of the objects in the following way, where $p_1$ and $p_2$ are the positions of both masses. 
+\begin{align*}
+F_x &= \norm{\boldsymbol{F}}\frac{p_{2,x}-p_{1,x}}{r}\\
+F_y &= \norm{\boldsymbol{F}}\frac{p_{2,y}-p_{1,y}}{r}
+\end{align*}
+\subsection{Complexity}
+A classical brut-force approach to this problem has a complexity of $\boldsymbol{\mathcal{O}(n^2)}$, where $n$ is the number of bodies in the system. This will rapidly become unbearable, since for 1000 bodies the calculations take the order of one second on a laptop. Since this problem is time dependant, the calculations must be performed at each time step, hence the importance of having a parallel application to perform the body interactions is obvious. The copmutation of the interactions at each step is straight forward, using two loops the force on each body induced by the other bodies is calculated.\\
+One well-known solution to this problem is the Barnes-Hut algorithm. This method calculates the forces acting between one body, and a group of bodies represented by the average of the group's masses and positions. With this algorithm, the complexity is reduced to $\boldsymbol{\mathcal{O}(nlogn)}$. In this case, the world (i.e. collection of bodies) is stored in a structure called ``quad-tree'', where each node stores the average of the bodie's positions and masses. At the leaves there is either a body if it fits into the quadrant, or nothing if no body is present. To calculate the interactions between all bodies, we traverse all bodies, and based on a distance criteria we either calculate the interaction with the exact body or the interaction with an ``averaged body''.
+
+\subsection{Computations VS Communications}
+For a simple brut-force approach, the computations follow $\mathcal{O}(n^2)$ at each time step. To guarantee correct results, the acceleration, velocity and position of all bodies must be updated in a synchronized manner, hence one cannot move forward in time until all forces have been calculated. Once the new positions are calculated for all bodies on each node, these updated positions must be broadcast to all other nodes so they can continue the compuations at the next time step. Therefore the communication complexity is $\mathcal{O}(n)$, since the positions of the bodies must be passed around between nodes. The ratio of computations to communications can be approximated as $\boldsymbol{\mathcal{O}(n)}$ for the parallel brute-force approach.\\
+For Barnes-Hut's algorithm, this ratio is harder to estimate. Since the application is no longer automatically load-balanced, the communications will depend on the tree and how the graph is updated at each time step. Since for distant groups we consider only averages, exchanging all positions at each time step is not necessary and expensive in communications. To give a precise estimation, the method for load balancing the work on each worker must be defined.
+\subsection{Amdahl's Law}
+\paragraph{Brut-Force approach}For the brut force approach, since the data is stored in arrays, very little pre-processing is required. The fraction of non-parallelizable code is very low, it is only loading the data from a file, and writing the positions to a file. Some quick measurements give a fraction $f=0.005$ as the serial part. Hence the optimistic upper bound for the speed can be calculated and plotted. For the improved estimation, the communication fraction can be estimated to $f_{comm} = 0.015$, which takes into account the time to distribute the inital situation to the nodes. The data which must be distributed is the mass, initial velocities and positions to all nodes. Hence the new ``realistic'' speedup graph is shown below, Figure \ref{fig:th_su}. This speedup graph is still far too optimistic as it does not take into account the communication at each time step.\\
+
+\paragraph{Quad-Tree approach}
+For a quad-tree method, since building the inital tree will take a long time, this should be performed by the main processor, then sent to each worker. Hence the initial communication will contain the whole tree and might be more demanding then the brut-force case. With this regard, the optmistic upperbound will not be as high as previously. On the other hand, the computations are much faster since they are in $\mathcal{O}(nlogn)$. Figure \ref{fig:th_su} shows a first estimate of the theoretical maximum speedup, based on the estimation that building the quad-tree will take some time. 
+\begin{figure}[H]
+\input{../figures/amdahl_bf.tex}
+\caption{Theoretical speedup chart for both the brut-force approach and the quad-tree method. These are estimations based on some simple timings on a serial implementation.}
+\label{fig:th_su}
+\end{figure}
+
+%f = 0.001 hence max is very high.
+%Required communicatpon: positions swapped times n_procs. gigabit eternet: 125MB/s latency: 0.125ms
+%fcomm = 0.015           ftot = 0.001 hence plot theoretical best and lower best.
+

@@ -1,0 +1,122 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[margin=1.0in]{geometry}
+
+%%%%%%%%%%%%%%%%%%%%%%% Page header and setup %%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\footnotesize Nicholas Molyneaux}
+\rhead{\footnotesize 2015}
+
+\cfoot{\thepage}
+
+%%%%%%%%%%%%%%%%%%%%%%% Bibliography style %%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{plain}
+\usepackage{varioref}
+\usepackage{natbib}
+
+\usepackage{siunitx}
+\usepackage{mathtools} % norm and absolute value
+
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}%
+
+% Swap the definition of \abs* and \norm*, so that \abs
+% and \norm resizes the size of the brackets, and the 
+% starred version does not.
+
+\makeatletter
+\let\oldabs\abs
+\def\abs{\@ifstar{\oldabs}{\oldabs*}}
+%
+\let\oldnorm\norm
+\def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
+\makeatother
+
+%%%%%%%%%%%%%%%%%%%%%%% Figure related packages %%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{graphicx}
+\usepackage{pdfpages} % for inserting pdfs
+\usepackage{epstopdf}
+\usepackage[font=small,margin=1cm]{caption}
+\usepackage[margin=1cm]{subcaption}
+\usepackage{standalone} % inserting full standalone tex files
+\usepackage{tabularx} % allows the specification of the tabular width
+\newcommand{\inputTikz}[2]{%specify width for tikz images
+     \scalebox{#1}{\input{#2}}  
+}
+\usepackage{float} % allows using of [H] for figures
+\usepackage{adjustbox} % allows wide figures
+%%%%%%%%%%%%%%%%%%%%%%% TIKZ related packages %%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usetikzlibrary{arrows}
+\usepackage{xparse}
+\usetikzlibrary{calc}
+\input{$HOME/_TexConfig/tikz.tex}
+
+%\usepackage{amssymb}
+%\usepackage{amsthm}
+\usepackage{amsmath}
+%\usepackage{float}
+%\usepackage[listofformat=subparens]{subfig}
+%\usepackage{natbib}
+\usepackage{url}
+\usepackage[utf8]{inputenc}
+\usepackage[cyr]{aeguill}
+\usepackage[english]{babel}
+%\usepackage{xspace}
+\usepackage[T1]{fontenc}
+%\usepackage{pdfpages}
+%\usepackage{lscape}
+%\usepackage{tocbibind}
+%\usepackage{epstopdf}
+%\usepackage{multirow}
+%\usepackage{rotating}
+%\usepackage{varioref}
+%\usepackage{hyperref}
+%\usepackage{cleveref}
+
+%% Adds the subfigures to the list of figures
+%\renewcommand{\thesubfigure}{\thefigure.\arabic{subfigure}}
+%\captionsetup[subfigure]{labelformat=simple,labelsep=colon,
+%listofformat=subsimple}
+%\captionsetup{lofdepth=2}
+%\makeatletter
+%\renewcommand{\p@subfigure}{}
+%\makeatother
+%%
+
+%% Adds a newpage before each section
+%%\let\stdsection\section
+%%\renewcommand\section{\newpage\stdsection}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%					Start of the main document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt plus 1pt minus 1pt}
+
+%%%%%%%%%%%%%%%%%%%%%%% Title  %%%%%%%%%%%%%%%%%%%%%%%
+\title{N-Body parallelization with MPI}
+\author{Nicholas Molyneaux}
+\vspace{-4cm}
+\maketitle
+
+
+%%%%%%%%%%%%%%%%%%%%%%% Document %%%%%%%%%%%%%%%%%%%%%%%
+
+\section{N-Body}
+\input{description.tex}
+\section{Parallelization strategy}
+\input{strategy.tex}
+\section{Performance}
+\input{results.tex}
+%%%%%%%%%%%%%%%%%%%%% bibliography %%%%%%%%%%%%%%%%%%%%%
+\nocite{*}
+\bibliography{../references}
+%%%%%%%%%%%%%%%%%%%%% End document %%%%%%%%%%%%%%%%%%%%%
+\end{document}
