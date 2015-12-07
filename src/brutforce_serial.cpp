@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
       positions.push_back(data_read[i*5+1]);
       positions.push_back(data_read[i*5+2]);
       velocities.push_back(data_read[i*5+3]);
-      velocities.push_back(data_read[i*5+4]);	  
+      velocities.push_back(data_read[i*5+4]);
   }
   std::vector<double> positions_fixed(positions);
   
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
   
   // --------------- Time iterations ----------------
   int dt = 60*30;
-  int time_max = 365*24*60*60;  
+  int time_max = 60*60;  
   int t = 0;
   
   

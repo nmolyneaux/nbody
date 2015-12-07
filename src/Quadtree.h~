@@ -1,0 +1,51 @@
+/* ------------------------------------------------
+
+Author: Nicholas Molyneaux
+Date : 28 November 2015
+
+Quad tree approach to the n-body problem. Implemented
+or the course of program parallelization for PC clusters
+
+ ------------------------------------------------*/
+
+#include <vector>
+
+class Body
+{
+public:
+    Body();
+    ~Body();
+    double pos_x, pox_y, mass;   
+};
+
+class Node
+{
+public:
+    Node();
+    Node(double x, double y, double h, double w);
+    ~Node();
+    double pos_x, pox_y, mass;
+    
+private:
+    Node* tr;
+    Node* tl;
+    Node* bl;
+    Node* br;    
+};
+
+class Quadtree
+{
+public:
+    Quadtree();
+    Quadtree(double x, double y, double h, double w);
+    ~Quadtree();
+    
+    Node root;
+    
+    void insertBody(Body body);
+    void createNode();
+};
+
+
+
+

@@ -1,0 +1,25 @@
+\documentclass[border=2pt]{standalone}
+\usepackage{pgfplots}
+
+\begin{document}
+\begin{tikzpicture}
+  \begin{axis}[
+      xlabel= \# nodes,
+      ylabel = Th. Speedup,
+      ylabel style={rotate=0},
+      width=14cm,
+      height=9cm,
+      grid=major,
+      scaled x ticks = false,
+      legend entries={BF - Amdahl, BF - Amdahl improved, QT - Amdahl, QT - Amdahl improved},
+      legend pos = south east,
+      tick label style={/pgf/number format/fixed},
+    ]
+    \addplot[solid,blue, domain=0:2048, samples=500] {x/(1+(x-1)*0.005)};
+    \addplot[solid,red, domain=0:2048, samples=500] {x/(1+(x-1)*0.015)};
+    \addplot[dashed,blue, domain=0:2048, samples=500] {x/(1+(x-1)*0.02)};
+    \addplot[dashed,red, domain=0:2048, samples=500] {x/(1+(x-1)*0.025)};
+
+\end{axis}
+\end{tikzpicture}
+\end{document}
