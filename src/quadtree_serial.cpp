@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
 	//if (int(t) % 1 == 0)
 	std::cout << "We are at time: " << t << std::endl;
 	//std::cout << quad_tree << std::endl;
-	node_assignment = quad_tree.findLocalNodes(0,4);
+	node_assignment = quad_tree.findLocalNodes();
 	//std::cout << quad_tree.root.nb_bodies << std::endl;
 	/*quad_tree.calculateForcesInBranch(quad_tree.root);	
 	quad_tree.moveBodies(quad_tree.root);

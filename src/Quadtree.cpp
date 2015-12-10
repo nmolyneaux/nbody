@@ -122,9 +122,16 @@ void Node::updateNodeOnInsert(Body &body)
 Quadtree::Quadtree(){};
 
 // Constructor of the QT, with the size of the universe
-Quadtree::Quadtree(double x, double y, double w, double h, double time_step)
+Quadtree::Quadtree(double x, double y, double w, double h, double time_step, int procs)
 {
-dt = time_step;
+    nb_proc = procs;
+    dt = time_step;
+    root = Node(x, y, w, h);
+};
+
+Quadtree::Quadtree(double x, double y, double w, double h, double time_step)
+{    
+    dt = time_step;
     root = Node(x, y, w, h);
 };
 
@@ -340,17 +347,15 @@ void Quadtree::printPositions(Node &node, double time, std::ofstream &file)
     }
 }
 
-std::vector<std::vector < Node *> > Quadtree::findLocalNodes(int rank, int nb_procs)
+std::vector<std::vector < Node *> > Quadtree::findLocalNodes()
 {
-    max_block_size = int(1.0 * (root.nb_bodies)/(10*nb_procs));
-    min_block_size = int(1.0 * (root.nb_bodies)/(10*nb_procs));
-    min_bodies_per_node = int(1.05 * root.nb_bodies/(nb_procs));
-    max_bodies_per_node = int(0.95 * root.nb_bodies/(nb_procs));
+    max_block_size = int(1.0 * (root.nb_bodies)/(10*nb_proc));
+    min_block_size = int(1.0 * (root.nb_bodies)/(10*nb_proc));
+    min_bodies_per_node = int(1.05 * root.nb_bodies/(nb_proc));
+    max_bodies_per_node = int(0.95 * root.nb_bodies/(nb_proc));
 
-    std::cout << max_block_size << " " << min_block_size << " " << max_bodies_per_node << " " << min_bodies_per_node << std::endl;
-
-    std::vector<int> bodies_per_node(nb_procs);
-    std::vector<std::vector< Node *> > node_assignment(nb_procs);
+    std::vector<int> bodies_per_node(nb_proc);
+    std::vector<std::vector< Node *> > node_assignment(nb_proc);
     assignNode(bodies_per_node, node_assignment, root);
     return node_assignment;
 }
@@ -360,7 +365,7 @@ void Quadtree::assignNode(std::vector<int> &bodies_per_node, std::vector<std::ve
     if (node.nb_bodies <= max_block_size && !node.is_leaf)
     {
 	int i = 0;
-	while(((bodies_per_node[i] + node.nb_bodies) > max_bodies_per_node) && i < 4-1)
+	while(((bodies_per_node[i] + node.nb_bodies) > max_bodies_per_node) && i < nb_proc-1)
 	{
 	    i++;
 	}

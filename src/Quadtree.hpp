@@ -59,6 +59,7 @@ class Quadtree
 public:
     Quadtree();
     Quadtree(double x, double y, double w, double h, double time_step);
+    Quadtree(double x, double y, double w, double h, double time_step, int procs);
     ~Quadtree();
    
     void empty();
@@ -69,7 +70,7 @@ public:
     Node root;
 
     int min_bodies_per_node, max_bodies_per_node;   
-    int min_block_size, max_block_size;   
+    int min_block_size, max_block_size, nb_proc;   
     
     void findQuadrant(Body &body, Node &node);
     void insertBody(Body &body, Node &local_root);
@@ -93,7 +94,7 @@ public:
 
     void collectBodies(std::vector<double> &bodies, Node & node);
 
-    std::vector<std::vector<Node*> > findLocalNodes(int rank, int nb_procs);
+    std::vector<std::vector<Node*> > findLocalNodes();
     void assignNode(std::vector<int> &bodies_per_node, std::vector<std::vector<Node*> > &node_assignment, Node &node);
 
 };
