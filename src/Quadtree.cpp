@@ -81,6 +81,22 @@ Node::Node(Node *parent_ptr, double x, double y, double w, double h)
 
 Node::~Node(){};
 
+void Node::deleteNode()
+{
+    if (!is_leaf)
+    {
+	tr->deleteNode();
+	tl->deleteNode();
+	bl->deleteNode();
+	br->deleteNode();
+	is_leaf = true;
+    }
+    else if (is_leaf)
+    {
+	delete this;
+    }
+}
+
 void Node::setBody(Body &body)
 {
     body_local = body;
@@ -113,6 +129,26 @@ dt = time_step;
 };
 
 Quadtree::~Quadtree(){};
+
+void Quadtree::updateRoot(double w, double h)
+{
+    root.width=w;
+    root.height=h;
+};
+
+void Quadtree::empty()
+{
+    root.tr->deleteNode();
+    root.tl->deleteNode();
+    root.bl->deleteNode();
+    root.br->deleteNode();
+    root.is_leaf = true;
+    root.mass = 0.0;
+    root.pos_x = 0.0;
+    root.pos_y = 0.0;
+    root.nb_bodies = 0;
+
+}
 
 // Finds in which quadrant of a node the body should go, then inserts it
 void Quadtree::findQuadrant(Body &body, Node &node)
@@ -196,7 +232,6 @@ void Quadtree::calculateForce(Body &body, Node &node)
     double r = calculateDistance(body, node);
     body.acc_x += (node.pos_x - body.pos_x) * G * node.mass / pow(r,3);
     body.acc_y += (node.pos_y - body.pos_y) * G * node.mass / pow(r,3);
-    //std::cout << body << std::endl;
 };
 
 void Quadtree::calculateForce(Body &body, Body &body_effect)
@@ -205,7 +240,6 @@ void Quadtree::calculateForce(Body &body, Body &body_effect)
     double r = calculateDistance(body, body_effect);    
     body.acc_x += (body_effect.pos_x - body.pos_x) * G * body_effect.mass / pow(r,3);
     body.acc_y += (body_effect.pos_y - body.pos_y) * G * body_effect.mass / pow(r,3);
-    std::cout << r << "," <<  body << std::endl;
 };
 
 void Quadtree::updateNodesAfterMove(Node &node, Body & body)
@@ -224,7 +258,11 @@ void Quadtree::moveBodies(Node &node)
     {
 	node.body_local.pos_x += dt * node.body_local.vel_x + dt*dt * node.body_local.acc_x;
 	node.body_local.pos_y += dt * node.body_local.vel_y + dt*dt * node.body_local.acc_y;
-	updateNodesAfterMove(*node.parent, node.body_local);
+	node.body_local.vel_x += dt * node.body_local.acc_x;
+	node.body_local.vel_y += dt * node.body_local.acc_y;
+	node.body_local.acc_x = 0.0;
+	node.body_local.acc_y = 0.0;
+	//updateNodesAfterMove(*node.parent, node.body_local);
     }
     else if (!node.is_leaf)
     {
@@ -235,10 +273,10 @@ void Quadtree::moveBodies(Node &node)
     }
 };
 
-void Quadtree::calculateAllForcesBody(Body & body, Node & node)
+void Quadtree::calculateAllForcesBody(Body &body, Node &node)
 {
     double distance = calculateDistance(body, node);
-    if (!node.is_leaf && distance/(0.5*node.width + 0.5*node.height) > 2)
+    if (!node.is_leaf && distance/(0.5*node.width + 0.5*node.height) > 3.0)
 	calculateForce(body, node);
     else if (!node.is_leaf)    
     {
@@ -252,20 +290,39 @@ void Quadtree::calculateAllForcesBody(Body & body, Node & node)
 	    calculateForce(body, node.body_local);
 };
 
-void Quadtree::calculateForcesInBranch(Node & node)
+void Quadtree::calculateForcesInBranch(Node &node)
 {
     if (node.contains_body && node.is_leaf)
     {
 	calculateAllForcesBody(node.body_local, root);
     }
-    else if (!node.contains_body && !node.is_leaf)
+    else if (!node.is_leaf)
     {
 	calculateForcesInBranch(*node.tr);
 	calculateForcesInBranch(*node.tl);
 	calculateForcesInBranch(*node.bl);
 	calculateForcesInBranch(*node.br);
     }
-};
+}
+
+void Quadtree::collectBodies(std::vector<double> &bodies, Node & node)
+{
+    if (node.contains_body && node.is_leaf)
+    {
+	bodies.push_back(node.body_local.pos_x);
+	bodies.push_back(node.body_local.pos_y);
+	bodies.push_back(node.body_local.mass);		
+	bodies.push_back(node.body_local.vel_x);
+	bodies.push_back(node.body_local.vel_y);	
+    }
+    else if (!node.is_leaf)
+    {
+	collectBodies(bodies, *node.tr);
+        collectBodies(bodies, *node.tl);
+	collectBodies(bodies, *node.bl);
+	collectBodies(bodies, *node.br);
+    }
+}
 
 void Quadtree::printPositions(Node &node, double time, std::ofstream &file)
 {
@@ -281,7 +338,44 @@ void Quadtree::printPositions(Node &node, double time, std::ofstream &file)
 	printPositions(*node.bl, time, file);
 	printPositions(*node.br, time, file);
     }
-};
+}
+
+std::vector<std::vector < Node *> > Quadtree::findLocalNodes(int rank, int nb_procs)
+{
+    max_block_size = int(1.0 * (root.nb_bodies)/(10*nb_procs));
+    min_block_size = int(1.0 * (root.nb_bodies)/(10*nb_procs));
+    min_bodies_per_node = int(1.05 * root.nb_bodies/(nb_procs));
+    max_bodies_per_node = int(0.95 * root.nb_bodies/(nb_procs));
+
+    std::cout << max_block_size << " " << min_block_size << " " << max_bodies_per_node << " " << min_bodies_per_node << std::endl;
+
+    std::vector<int> bodies_per_node(nb_procs);
+    std::vector<std::vector< Node *> > node_assignment(nb_procs);
+    assignNode(bodies_per_node, node_assignment, root);
+    return node_assignment;
+}
+
+void Quadtree::assignNode(std::vector<int> &bodies_per_node, std::vector<std::vector<Node*> > &node_assignment, Node &node)
+{
+    if (node.nb_bodies <= max_block_size && !node.is_leaf)
+    {
+	int i = 0;
+	while(((bodies_per_node[i] + node.nb_bodies) > max_bodies_per_node) && i < 4-1)
+	{
+	    i++;
+	}
+	node_assignment[i].push_back(&node);
+	bodies_per_node[i] += node.nb_bodies;
+    }
+    else if (!node.is_leaf)
+    {
+	assignNode(bodies_per_node, node_assignment, *node.tr);
+	assignNode(bodies_per_node, node_assignment, *node.tl);
+	assignNode(bodies_per_node, node_assignment, *node.bl);
+	assignNode(bodies_per_node, node_assignment, *node.br);	
+    }
+        
+}
 
 std::ostream& operator<< (std::ostream & out, Quadtree const& qt)
 {

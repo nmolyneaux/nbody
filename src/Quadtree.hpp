@@ -29,8 +29,12 @@ public:
     Node(double x, double y, double h, double w);
     Node(Node *parent_ptr, double x, double y, double h, double w);
     ~Node();
+    void deleteNode();
+
     double center_x, center_y, width, height;
     double pos_x, pos_y, mass, vel_x, vel_y, nb_bodies;
+
+
 
     int depth;
 
@@ -56,9 +60,16 @@ public:
     Quadtree();
     Quadtree(double x, double y, double w, double h, double time_step);
     ~Quadtree();
-    
+   
+    void empty();
+    void updateRoot(double w, double h);
+
+
     double dt;
     Node root;
+
+    int min_bodies_per_node, max_bodies_per_node;   
+    int min_block_size, max_block_size;   
     
     void findQuadrant(Body &body, Node &node);
     void insertBody(Body &body, Node &local_root);
@@ -79,6 +90,11 @@ public:
     void updateNodesAfterMove(Node &node, Body & body);
 
     void moveBodies(Node &node);
+
+    void collectBodies(std::vector<double> &bodies, Node & node);
+
+    std::vector<std::vector<Node*> > findLocalNodes(int rank, int nb_procs);
+    void assignNode(std::vector<int> &bodies_per_node, std::vector<std::vector<Node*> > &node_assignment, Node &node);
 
 };
 

@@ -87,31 +87,47 @@ int main(int argc, char* argv[])
     std::vector<double> positions_fixed(positions);    
     std::cout << "done" << std::endl;
     
-    int dt = 24*60*60;
-    int time_max = 365*24*60*60;
-    int t = 0;   
+    double dt = 0.1;
+    double time_max = 0.1;
+    double t = 0;   
     
-    Quadtree quad_tree =  Quadtree(0,0,10e11, 10e11,dt);
+    Quadtree quad_tree =  Quadtree(0,0,10e5, 10e5,dt);
     
     for (int i = 0; i < nbBodies; i++)
     {
 	Body body(positions[2*i], positions[2*i+1], mass[i], velocities[2*i], velocities[2*i+1]);
 	quad_tree.insertBody(body, quad_tree.root);
-    };
+    }
     
     std::ofstream outputFile("qt_serial.csv");
     outputFile.precision(10);
     outputFile << "t,px,py" << std::endl;
-    quad_tree.printPositions(quad_tree.root, t, outputFile);
+    quad_tree.printPositions(quad_tree.root, t, outputFile);//
 
+    std::vector<double> bodies_data;
+
+    std::cout << "Starting time loop" << std::endl;
+
+    std::vector<std::vector < Node *> > node_assignment;
 
     for (; t < time_max; t += dt)
-    {      
-	quad_tree.calculateForcesInBranch(quad_tree.root);		
+    {   	
+	//if (int(t) % 1 == 0)
+	std::cout << "We are at time: " << t << std::endl;
+	//std::cout << quad_tree << std::endl;
+	node_assignment = quad_tree.findLocalNodes(0,4);
+	//std::cout << quad_tree.root.nb_bodies << std::endl;
+	/*quad_tree.calculateForcesInBranch(quad_tree.root);	
 	quad_tree.moveBodies(quad_tree.root);
 	quad_tree.printPositions(quad_tree.root, t+dt, outputFile);
+	quad_tree.collectBodies(bodies_data, quad_tree.root);
+        quad_tree.empty();
+	
+	for (int i = 0; i < nbBodies; i++)
+	{
+	    Body body(bodies_data[i*5], bodies_data[i*5+1], bodies_data[i*5+2], bodies_data[i*5+3], bodies_data[i*5+4]);
+	    quad_tree.insertBody(body, quad_tree.root);
+	}
+	bodies_data.clear();*/
     }
 }
-
-
-
