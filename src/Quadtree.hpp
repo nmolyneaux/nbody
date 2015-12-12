@@ -94,8 +94,8 @@ public:
 
     void collectBodies(std::vector<double> &bodies, Node & node);
 
-    std::vector<std::vector<Node*> > findLocalNodes();
-    void assignNode(std::vector<int> &bodies_per_node, std::vector<std::vector<Node*> > &node_assignment, Node &node);
+    std::vector<std::vector<Node*> > findLocalNodes(int *bodies_per_node);
+    void assignNode(int *bodies_per_node, std::vector<std::vector<Node*> > &node_assignment, Node &node);
 
 };
 
