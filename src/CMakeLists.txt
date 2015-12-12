@@ -7,7 +7,6 @@ add_executable(brutforce-parallel brutforce_parallel.cpp)
 add_executable(quadtree-serial quadtree_serial.cpp Quadtree.cpp)
 add_executable(quadtree-parallel quadtree_parallel.cpp Quadtree.cpp)
 
-
 # Require MPI for this project:
 find_package(MPI REQUIRED)
 set(CMAKE_CXX_COMPILER /usr/bin/mpicxx)
