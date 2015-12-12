@@ -103,16 +103,16 @@ int main(int argc, char* argv[])
       outputFile << 0 << "," << positions[2*k] << "," <<  positions[2*k+1] << std::endl;
   
   // --------------- Time iterations ----------------
-  int dt = 60*30;
-  int time_max = 60*60;  
-  int t = 0;
+  double dt = 24*60*60;
+  double time_max = 365*24*60*60;  
+  double t = 0;
   
   
   for (; t < time_max; t += dt)
-  {      
-      
-      if (t % (10*24*60*60) == 0)
-	  std:: cout << "At time: " << t << std::endl;	   
+  {            
+      //if (t % (10*24*60*60) == 0)
+      std:: cout << "At time: " << t+dt << std::endl;
+	   
       for(int i = 0; i < nbBodies; i++)
       {	  
 	  for(int j = 0; j<nbBodies; j++)
