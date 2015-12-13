@@ -90,8 +90,8 @@ int main(int argc, char* argv[])
       if (nbBodies < nb_proc)
 	  throw std::invalid_argument("Number of bodies smaller than number of nodes");
       std::cout << "done" << std::endl;
+      timingFile << "loading_data, " << MPI_Wtime() - start_time << std::endl;
   }
-  timingFile << "loading_data, " << MPI_Wtime() - start_time << std::endl;
 
   // Broadcasts the number of bodies to all nodes
   MPI_Bcast(&nbBodies, 1, MPI_INT, 0, MPI_COMM_WORLD);
