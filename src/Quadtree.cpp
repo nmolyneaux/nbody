@@ -283,7 +283,7 @@ void Quadtree::moveBodies(Node &node)
 
 void Quadtree::calculateAllForcesBody(Body &body, Node &node)
 {
-    double theta = 0.5;
+    double theta = 0.25;
     double distance = calculateDistance(body, node);
     if (!node.is_leaf && (0.5*node.width + 0.5*node.height)/distance < theta)
 	calculateForce(body, node);
@@ -353,8 +353,8 @@ void Quadtree::printPositions(Node &node, double time, std::ofstream &file)
 
 std::vector<std::vector < Node *> > Quadtree::findLocalNodes(int *bodies_per_node)
 {
-    max_block_size = 10;//int(1.05 * (root.nb_bodies)/(nb_proc));
-    min_block_size = 10;//int(0.95 * (root.nb_bodies)/(nb_proc));
+    max_block_size = 1000;//int(1.05 * (root.nb_bodies)/(nb_proc));
+    min_block_size = 1000;//int(0.95 * (root.nb_bodies)/(nb_proc));
     min_bodies_per_node = int(0.95 * root.nb_bodies/(nb_proc));
     max_bodies_per_node = int(1.05 * root.nb_bodies/(nb_proc));
 

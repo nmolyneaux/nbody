@@ -20,7 +20,6 @@ or the course of program parallelization for PC clusters
 #include <stdexcept> // deal with exceptions
 
 #include "Quadtree.hpp"
-
 // --------------------------------------- 
 // -------- Read into Eigen matrix -------
 std::vector<double> readDataFile(const char *fileName)
@@ -72,8 +71,11 @@ int main(int argc, char* argv[])
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank); 
   MPI_Comm_size(MPI_COMM_WORLD, &nb_proc); 
 
-  double start_timer = MPI_Wtime();
+  std::ofstream timingFile(argv[3]);
+  timingFile.precision(10);
 
+  double start_time, end_time;
+  start_time = MPI_Wtime();
   // Loads the data for the simulation into matrix. Separator is a comma ' ' (space)
   // Only the main processor does this, then sends the split data to workers
   int nbBodies;
@@ -89,36 +91,46 @@ int main(int argc, char* argv[])
 	  throw std::invalid_argument("Number of bodies smaller than number of nodes");
       std::cout << "done" << std::endl;
   }
+  timingFile << "loading_data, " << MPI_Wtime() - start_time << std::endl;
+
   // Broadcasts the number of bodies to all nodes
   MPI_Bcast(&nbBodies, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  
   bodies_data.resize(nbBodies*5);
+  
+  start_time = MPI_Wtime();
   MPI_Bcast(&bodies_data[0], 5*nbBodies, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
+  end_time = MPI_Wtime();
+  if (my_rank == 0)      
+      timingFile << "sending_initial," << end_time - start_time << std::endl;
   
   double dt = 0.1;
-  double time_max = 10;
+  double time_max = 0.5;
   double t = 0;   
   
+  start_time = MPI_Wtime();
   Quadtree quad_tree =  Quadtree(0,0,10e12, 10e12, dt, nb_proc);
-    
   for (int i = 0; i < nbBodies; i++)
   {
       Body body(bodies_data[i*5+1], bodies_data[i*5+2], bodies_data[i*5], bodies_data[i*5+3], bodies_data[i*5+4]);     
-      quad_tree.insertBody(body, quad_tree.root);	  
+            quad_tree.insertBody(body, quad_tree.root);
   }
+  end_time = MPI_Wtime();
+  if (my_rank == 0)
+      timingFile << "builing_first_qt," << end_time - start_time << std::endl;
 
   std::vector<std::vector < Node *> > node_assignment(nb_proc);
   
-  std::ofstream outputFile("qt_parallel.csv");
+  std::ofstream outputFile(argv[2]);
   if (my_rank==0)
   {
+      timingFile << "forces,allgatherv,writing,rebuilding" << std::endl;
       outputFile.precision(10);
-      //outputFile << "t,px,py" << std::endl;
+      outputFile << "t,px,py" << std::endl;
       quad_tree.printPositions(quad_tree.root, t, outputFile);
       std::cout << "Starting time loop" << std::endl;
   }
   
+
   int *nb_bodies_per_node = new int[nb_proc];
   int *block_length = new int[nb_proc];
   int *start_position = new int[nb_proc];
@@ -131,6 +143,8 @@ int main(int argc, char* argv[])
 	  std::cout << "We are at time: " << t+dt << std::endl;
 
       // Load balancing and arrays containg the sizes for MPI gatehring
+      start_time = MPI_Wtime();
+
       node_assignment = quad_tree.findLocalNodes(nb_bodies_per_node);
       start_position[0] = 0;
       //block_length[0] = (nb_bodies_per_node[0])*5;
@@ -157,19 +171,38 @@ int main(int argc, char* argv[])
 
       // Give all nodes the new information about the positoins and velocities
       bodies_data.clear();
+
+      end_time = MPI_Wtime();
+      if (my_rank == 0)
+	  timingFile << end_time - start_time;
+
+      start_time = MPI_Wtime();
       MPI_Allgatherv(&bodies_data_local[0], block_length[my_rank], MPI_DOUBLE, &bodies_data[0], block_length, start_position,  MPI_DOUBLE, MPI_COMM_WORLD);
-      
+      end_time = MPI_Wtime();
+      if (my_rank == 0)
+	  timingFile << "," << end_time - start_time;
+
+      start_time = MPI_Wtime();
+
       // print time setp to file
       if(my_rank == 0)
 	  quad_tree.printPositions(quad_tree.root, t+dt, outputFile);
-      
+      end_time = MPI_Wtime();
+      if (my_rank == 0)
+	  timingFile << "," << end_time - start_time ;
+
       // rebuild tree for next time step
-      quad_tree.empty();  
+      start_time = MPI_Wtime();
+      quad_tree.empty();        
       for (int i = 0; i < nbBodies; i++)
       {
 	  Body body(bodies_data[i*5], bodies_data[i*5+1], bodies_data[i*5+2], bodies_data[i*5+3], bodies_data[i*5+4]);     
 	  quad_tree.insertBody(body, quad_tree.root);
-	  }
+      }
+      end_time = MPI_Wtime();
+      if (my_rank == 0)
+	  timingFile << "," << end_time - start_time << std::endl;
+
   }
   MPI_Finalize();  
 }
