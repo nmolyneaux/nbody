@@ -1,0 +1,27 @@
+\documentclass[border=2pt]{standalone}
+\usepackage{pgfplots}
+
+\begin{document}
+\begin{tikzpicture}
+  \begin{axis}[
+      xlabel= \# nodes,
+      ylabel = Speed-up,
+      ylabel style={rotate=0},
+      width=14cm,
+      height=9cm,
+      grid=major,
+      scaled x ticks = false,
+      legend entries={$10^5$ - Absolute, $10^5$ - Relative, $10^6$ - Absolute, $10^6$ - Relative},
+      legend pos = south east,
+      tick label style={/pgf/number format/fixed},
+    ]
+    \pgfplotstableread{../results/100000_summary.csv}\dataSmall;
+    %\addplot[solid,blue] table[x expr=\thisrowno{0}, y expr=13/\thisrowno{1}] {\dataSmall};
+    \addplot[solid,red] table[x expr=\thisrowno{0}, y expr=13.0227/\thisrowno{1}] {\dataSmall};
+    \pgfplotstableread{../results/1000000_summary.csv}\dataLarge;
+    %\addplot[solid,green] table[x expr=\thisrowno{0}, y expr=100/\thisrowno{1}] {\dataLarge};
+    \addplot[solid,black] table[x expr=\thisrowno{0}, y expr=171.3/\thisrowno{1}] {\dataLarge};
+
+\end{axis}
+\end{tikzpicture}
+\end{document}
