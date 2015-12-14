@@ -17,6 +17,9 @@ or the course of program parallelization for PC clusters
 #include <mpi.h>
 #include <vector>
 #include <stdexcept> // deal with exceptions
+#include <ctime> // timer
+#include <cstdio>
+
 
 // --------------------------------------- 
 // -------- Read into Eigen matrix -------
@@ -59,9 +62,9 @@ std::vector<double> readDataFile(const char *fileName)
 // ----------------- MAIN -----------------
 int main(int argc, char* argv[])
 {
-  
-  // --------------- Initialization ----------------
-  // constant variables required by the model
+    std::clock_t start = std::clock();
+    // --------------- Initialization ----------------
+    // constant variables required by the model
   const double tol = 1e3;
   const double G = 6.674e-11;
 
@@ -103,8 +106,8 @@ int main(int argc, char* argv[])
       outputFile << 0 << "," << positions[2*k] << "," <<  positions[2*k+1] << std::endl;
   
   // --------------- Time iterations ----------------
-  double dt = 24*60*60;
-  double time_max = 365*24*60*60;  
+  double dt = 0.1;
+  double time_max = 0.1;  
   double t = 0;
   
   
@@ -137,7 +140,8 @@ int main(int argc, char* argv[])
   }
   
       // --------------- Finalization  ----------------
-  outputFile.close();
-  
+  outputFile.close(); 
+  double total_time = (std::clock() - start) / (double) CLOCKS_PER_SEC;
+  std::cout << "time taken: " << total_time  << std::endl;
 }
 
