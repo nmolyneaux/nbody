@@ -146,6 +146,7 @@ int main(int argc, char* argv[])
   
 
   std::vector<double> bodies_data_local;
+  
   for (; t < time_max; t += dt)
   {   	
       //if (my_rank==0)      
@@ -198,6 +199,10 @@ int main(int argc, char* argv[])
       {
 	  Body body(bodies_data[i*doubles_per_body], bodies_data[i*doubles_per_body+1], bodies_data[i*doubles_per_body+2], bodies_data[i*doubles_per_body+3], bodies_data[i*doubles_per_body+4]);     
 	  quad_tree.insertBody(body, quad_tree.root);
+<<<<<<< HEAD
+	  }
+  }*/
+=======
       }
       end_time = MPI_Wtime();
       if (my_rank == 0)
@@ -225,6 +230,7 @@ int main(int argc, char* argv[])
 	  timingFile << "," << end_time - start_time ;
 
   }
+>>>>>>> a0d6c194ce2f87d427a6b4ac1d52d652ff538e52
   MPI_Finalize();  
 }
 
