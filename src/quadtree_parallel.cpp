@@ -95,25 +95,23 @@ int main(int argc, char* argv[])
 
   // Broadcasts the number of bodies to all nodes
   MPI_Bcast(&nbBodies, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  bodies_data.resize(nbBodies*5);
   
+  bodies_data.resize(nbBodies * 5);
   start_time = MPI_Wtime();
   MPI_Bcast(&bodies_data[0], 5*nbBodies, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   end_time = MPI_Wtime();
   if (my_rank == 0)      
       timingFile << "sending_initial," << end_time - start_time << std::endl;
   
-  double dt = 0.1;
-
-  double time_max = 100;
+  double dt = 0.01;
+  double time_max = 1000;
   double t = 0;   
   
   start_time = MPI_Wtime();
-  Quadtree quad_tree =  Quadtree(0,0,10e12, 10e12, dt, nb_proc);
+  Quadtree quad_tree =  Quadtree(0,0,10e11, 10e11, dt, nb_proc, 0.5);
   for (int i = 0; i < nbBodies; i++)
   {
       Body body(bodies_data[i*5+1], bodies_data[i*5+2], bodies_data[i*5], bodies_data[i*5+3], bodies_data[i*5+4]);     
-      std::cout << i << " " << body << std::endl;
       quad_tree.insertBody(body, quad_tree.root);
   }
   end_time = MPI_Wtime();
@@ -125,10 +123,10 @@ int main(int argc, char* argv[])
   std::ofstream outputFile(argv[2]);
   if (my_rank==0)
   {
-      timingFile << "forces,allgatherv,writing,rebuilding" << std::endl;
+      timingFile << "forces,allgatherv,rebuilding,writing" << std::endl;
       outputFile.precision(10);
       outputFile << "t,px,py" << std::endl;
-      quad_tree.printPositions(quad_tree.root, t, outputFile);
+      //quad_tree.printPositions(quad_tree.root, t, outputFile);
       std::cout << "Starting time loop" << std::endl;
   }
   
@@ -136,6 +134,16 @@ int main(int argc, char* argv[])
   int *nb_bodies_per_node = new int[nb_proc];
   int *block_length = new int[nb_proc];
   int *start_position = new int[nb_proc];
+
+  bool with_proc = true;
+  int doubles_per_body;
+  if (with_proc)
+      doubles_per_body = 6;
+  else
+      doubles_per_body = 5;
+      
+  bodies_data.resize(nbBodies * doubles_per_body);
+  
 
   std::vector<double> bodies_data_local;
   
@@ -152,15 +160,15 @@ int main(int argc, char* argv[])
       //block_length[0] = (nb_bodies_per_node[0])*5;
       for (int i = 0; i < (nb_proc - 1); i++)
       {
-	  *(block_length + i) = *(nb_bodies_per_node + i)*5;
-	  *(start_position + i+1) = *(start_position + i) + *(nb_bodies_per_node + i)*5;
+	  *(block_length + i) = *(nb_bodies_per_node + i)*doubles_per_body;
+	  *(start_position + i+1) = *(start_position + i) + *(nb_bodies_per_node + i)*doubles_per_body;
       }
-      *(block_length + (nb_proc -1)) = *(nb_bodies_per_node + (nb_proc -1))*5;
+      *(block_length + (nb_proc -1)) = *(nb_bodies_per_node + (nb_proc -1))*doubles_per_body;
       
       // Calculates acceleration acting oin all bodies
       for (int i = 0; i < node_assignment[my_rank].size(); i++)	  
       {
-	  quad_tree.calculateForcesInBranch( (*node_assignment[my_rank][i]) );
+	  quad_tree.calculateForcesInBranch( (*node_assignment[my_rank][i]), my_rank);
       }      
       
       // Move and then collect the new positions
@@ -168,9 +176,9 @@ int main(int argc, char* argv[])
       for (int i = 0; i < node_assignment[my_rank].size(); i++)	  
       {
 	  quad_tree.moveBodies( (*node_assignment[my_rank][i]) );
-	  quad_tree.collectBodies(bodies_data_local, (*node_assignment[my_rank][i]) );
+	  quad_tree.collectBodies(bodies_data_local, (*node_assignment[my_rank][i]), with_proc);
       }     
-
+      
       // Give all nodes the new information about the positoins and velocities
       bodies_data.clear();
 
@@ -184,21 +192,12 @@ int main(int argc, char* argv[])
       if (my_rank == 0)
 	  timingFile << "," << end_time - start_time;
 
-      start_time = MPI_Wtime();
-
-      // print time setp to file
-      if(my_rank == 0)
-	  quad_tree.printPositions(quad_tree.root, t+dt, outputFile);
-      end_time = MPI_Wtime();
-      if (my_rank == 0)
-	  timingFile << "," << end_time - start_time ;
-
       // rebuild tree for next time step
       start_time = MPI_Wtime();
-      quad_tree.empty();        
+      quad_tree.empty();
       for (int i = 0; i < nbBodies; i++)
       {
-	  Body body(bodies_data[i*5], bodies_data[i*5+1], bodies_data[i*5+2], bodies_data[i*5+3], bodies_data[i*5+4]);     
+	  Body body(bodies_data[i*doubles_per_body], bodies_data[i*doubles_per_body+1], bodies_data[i*doubles_per_body+2], bodies_data[i*doubles_per_body+3], bodies_data[i*doubles_per_body+4]);     
 	  quad_tree.insertBody(body, quad_tree.root);
 <<<<<<< HEAD
 	  }
@@ -208,6 +207,27 @@ int main(int argc, char* argv[])
       end_time = MPI_Wtime();
       if (my_rank == 0)
 	  timingFile << "," << end_time - start_time << std::endl;
+
+      start_time = MPI_Wtime();
+      // print time setp to file
+      if(my_rank == 0 && with_proc)
+      {
+	  for (int i = 0; i < nbBodies; i++)
+	  {
+	      outputFile << t+dt << "," << bodies_data[i*doubles_per_body] << "," << bodies_data[i*doubles_per_body+1] << "," << bodies_data[i*doubles_per_body+2] << "," << bodies_data[i*doubles_per_body+5] << std::endl;
+	  }
+      }
+      else if (my_rank == 0 && !with_proc)
+      {
+	  for (int i = 0; i < nbBodies; i++)
+	  {
+	      outputFile <<  t+dt << "," << bodies_data[i*doubles_per_body] << "," << bodies_data[i*doubles_per_body+1] << "," << bodies_data[i*doubles_per_body+2] << std::endl;
+	  }
+      }
+
+      end_time = MPI_Wtime();
+      if (my_rank == 0)
+	  timingFile << "," << end_time - start_time ;
 
   }
 >>>>>>> a0d6c194ce2f87d427a6b4ac1d52d652ff538e52
