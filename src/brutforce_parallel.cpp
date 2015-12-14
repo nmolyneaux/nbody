@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
   int nb_proc;
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank); 
   MPI_Comm_size(MPI_COMM_WORLD, &nb_proc); 
-
+  
   std::ofstream timingFile(argv[3]);
   if (my_rank == 0)
   {
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 
   end_time = MPI_Wtime();
   if (my_rank == 0)   
-      timingFile << "sending_initial," << end_time - start_time << std::endl;  
+      timingFile << "sending_initial," << end_time - start_time << std::endl;
 
   // --------------- Dumper ----------------
   // Creates file to write data to

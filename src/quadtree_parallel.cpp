@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
       timingFile << "sending_initial," << end_time - start_time << std::endl;
   
   double dt = 0.1;
-  double time_max = 0.5;
+  double time_max = 100;
   double t = 0;   
   
   start_time = MPI_Wtime();
@@ -112,7 +112,8 @@ int main(int argc, char* argv[])
   for (int i = 0; i < nbBodies; i++)
   {
       Body body(bodies_data[i*5+1], bodies_data[i*5+2], bodies_data[i*5], bodies_data[i*5+3], bodies_data[i*5+4]);     
-            quad_tree.insertBody(body, quad_tree.root);
+      std::cout << i << " " << body << std::endl;
+      quad_tree.insertBody(body, quad_tree.root);
   }
   end_time = MPI_Wtime();
   if (my_rank == 0)
@@ -138,9 +139,8 @@ int main(int argc, char* argv[])
   std::vector<double> bodies_data_local;
   for (; t < time_max; t += dt)
   {   	
-      if (my_rank==0)
-      
-	  std::cout << "We are at time: " << t+dt << std::endl;
+      //if (my_rank==0)      
+      //  std::cout << "We are at time: " << t+dt << std::endl;
 
       // Load balancing and arrays containg the sizes for MPI gatehring
       start_time = MPI_Wtime();

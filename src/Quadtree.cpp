@@ -193,6 +193,7 @@ void Quadtree::insertBody(Body &body, Node &local_root)
     // the old body and new body must be replaced
     if (local_root.is_leaf && local_root.contains_body)
     {
+	//std::cout << body << " in first" << std::endl;
 	createLeaves(local_root);
 	local_root.updateNodeOnInsert(local_root.body_local);
 	findQuadrant(local_root.body_local, local_root);
@@ -202,11 +203,13 @@ void Quadtree::insertBody(Body &body, Node &local_root)
     // if an empty leaf, place body in node
     else if (local_root.is_leaf && !local_root.contains_body)
     {
+	//std::cout << body << " in second" << std::endl;
 	local_root.setBody(body);
     }
     // if not a leaf, move towards leaves by searching again for quadrant
     else if (!local_root.is_leaf)
     {
+	//std::cout << body <<  " in third" << std::endl;
 	local_root.updateNodeOnInsert(body);
 	findQuadrant(body, local_root);
     }
@@ -283,7 +286,7 @@ void Quadtree::moveBodies(Node &node)
 
 void Quadtree::calculateAllForcesBody(Body &body, Node &node)
 {
-    double theta = 0.25;
+    double theta = 0.5;
     double distance = calculateDistance(body, node);
     if (!node.is_leaf && (0.5*node.width + 0.5*node.height)/distance < theta)
 	calculateForce(body, node);
