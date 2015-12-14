@@ -97,17 +97,17 @@ int main(int argc, char* argv[])
 
   
   double dt = 0.1;
-  double time_max = 10;
+  double time_max = 0.5;
   double t = 0;   
   
-  Quadtree quad_tree =  Quadtree(0,0,10e12, 10e12, dt, nb_proc);
-    
-  for (int i = 0; i < nbBodies; i++)
+  Quadtree quad_tree =  Quadtree(0,0,10e13, 10e13, dt, nb_proc);
+  
+  for (long int i = 0; i < nbBodies; i++)
   {
       Body body(bodies_data[i*5+1], bodies_data[i*5+2], bodies_data[i*5], bodies_data[i*5+3], bodies_data[i*5+4]);     
-      quad_tree.insertBody(body, quad_tree.root);	  
+      //quad_tree.insertBody(body, quad_tree.root);	  
   }
-
+  /*
   std::vector<std::vector < Node *> > node_assignment(nb_proc);
   
   std::ofstream outputFile("qt_parallel.csv");
@@ -124,6 +124,7 @@ int main(int argc, char* argv[])
   int *start_position = new int[nb_proc];
 
   std::vector<double> bodies_data_local;
+  
   for (; t < time_max; t += dt)
   {   	
       if (my_rank==0)
@@ -170,7 +171,7 @@ int main(int argc, char* argv[])
 	  Body body(bodies_data[i*5], bodies_data[i*5+1], bodies_data[i*5+2], bodies_data[i*5+3], bodies_data[i*5+4]);     
 	  quad_tree.insertBody(body, quad_tree.root);
 	  }
-  }
+  }*/
   MPI_Finalize();  
 }
 
