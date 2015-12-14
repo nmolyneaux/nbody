@@ -66,8 +66,16 @@ int main(int argc, char* argv[])
   int nb_proc;
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank); 
   MPI_Comm_size(MPI_COMM_WORLD, &nb_proc); 
+  
+  std::ofstream timingFile(argv[3]);
+  if (my_rank == 0)
+  {
+      std::ofstream timingFile(argv[3]);
+      timingFile.precision(10);
+  }
 
-  double start_timer = MPI_Wtime();
+  double start_time, end_time;
+  start_time = MPI_Wtime();
 
   // constant variables required by the model
   const double tol = 1e3;
@@ -114,10 +122,6 @@ int main(int argc, char* argv[])
   start_position[nb_proc-1] = (nb_proc-1) * 2 * (nbBodies/nb_proc);
   block_length[nb_proc-1] = 2 * (nbBodies - (nbBodies/nb_proc)*(nb_proc-1));
 
-  for (int i = 0; i < nb_proc; i++)
-      std::cout << my_rank << " " << block_length[i] << " " << start_position[i] << std::endl;
-
-
   // Sending initial data to all workers (including 0).
   // For all workers resize the vectors to contain the data 
   if (my_rank != 0)
@@ -131,18 +135,25 @@ int main(int argc, char* argv[])
   std::vector<double> velocities_local(block_length[my_rank]);   
   std::vector<double> positions_local(block_length[my_rank]);   
   
+  end_time = MPI_Wtime();
+  if (my_rank == 0)
+      timingFile << "loading_data, " << MPI_Wtime() - start_time << std::endl;
+
   // Actually sends data to all nodes
-  double start_init_comm = MPI_Wtime();
+  start_time = MPI_Wtime();
   MPI_Bcast(&mass[0], nbBodies, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast(&positions[0], 2*nbBodies, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Scatter(&positions[0], block_length[my_rank], MPI_DOUBLE, &positions_local[0], block_length[my_rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Scatter(&velocities[0], block_length[my_rank], MPI_DOUBLE, &velocities_local[0], block_length[my_rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  double time_init_comm = MPI_Wtime() - start_init_comm;
 
+  end_time = MPI_Wtime();
+  if (my_rank == 0)   
+      timingFile << "sending_initial," << end_time - start_time << std::endl;
 
   // --------------- Dumper ----------------
   // Creates file to write data to
-  std::string file_name = "output_mpi.csv"; 
+  start_time = MPI_Wtime();
+  std::string file_name = argv[2]; 
   std::ofstream outputFile(file_name.c_str());
   if (my_rank == 0)
   {
@@ -154,19 +165,25 @@ int main(int argc, char* argv[])
   }
   
   // --------------- Time iterations ----------------
-  int dt = 24*60*60;
-  int time_max = 5 * 24 * 60 * 60;  
-  int t = 0;
+  double dt = 0.1;
+  double time_max = 0.5;  
+  double t = 0;
   
-  double finish_initial_sending = MPI_Wtime();
-  double comm_time_loop = 0;
+  end_time = MPI_Wtime();
+  if (my_rank == 0)   
+  {
+      timingFile << "writing_inital," << end_time - start_time << std::endl;  
+      timingFile << "forces,allgatherv,writing" << std::endl;
+  }
+
   for (; t < time_max; t += dt)
-  {      
+  {            
       if (my_rank == 0)
       {
-	  if (t % (10*24*60*60) == 0)
-	    std:: cout << "At time: " << t << std::endl;	   
+	  std:: cout << "At time: " << t << std::endl;	   
       }
+      start_time = MPI_Wtime();
+
       for(int i = 0; i < 0.5 * block_length[my_rank]; i++)
       {	  
 	  for(int j = 0; j<nbBodies; j++)
@@ -182,22 +199,37 @@ int main(int argc, char* argv[])
 	  positions_local[2*i+1] += dt * velocities_local[2*i+1];
       }
       
-      double start_comm = MPI_Wtime();
-      MPI_Allgatherv(&positions_local[0], block_length[my_rank], MPI_DOUBLE, &positions[0], block_length, start_position,  MPI_DOUBLE, MPI_COMM_WORLD);
-      comm_time_loop += (MPI_Wtime() - start_comm);
+      end_time = MPI_Wtime();
+      if (my_rank == 0)   
+	  timingFile << end_time - start_time << ",";
 
+      start_time = MPI_Wtime();
+
+      MPI_Allgatherv(&positions_local[0], block_length[my_rank], MPI_DOUBLE, &positions[0], block_length, start_position,  MPI_DOUBLE, MPI_COMM_WORLD);
+
+      end_time = MPI_Wtime();
+      if (my_rank == 0)   
+	  timingFile << end_time - start_time << ",";
+      
+      start_time = MPI_Wtime();
       if (my_rank == 0)
       {	  
 	  for (int k = 0; k < nbBodies;k++) 
 	      outputFile << t+dt << "," << positions[2*k] << "," <<  positions[2*k+1] << std::endl;	 
       }
+      end_time = MPI_Wtime();
+      if (my_rank == 0)   
+	  timingFile << end_time - start_time << std::endl;
+      
   }
   
   // --------------- Finalization  ----------------
   if (my_rank == 0)
+  {
       outputFile.close();
+      timingFile.close();
+  }
   
-  std::cout << my_rank << " " << comm_time_loop/100. + time_init_comm  << " total time="  << MPI_Wtime() - start_timer << std::endl;
   delete[] start_position;
   delete[] block_length;
   MPI_Finalize();

@@ -193,6 +193,7 @@ void Quadtree::insertBody(Body &body, Node &local_root)
     // the old body and new body must be replaced
     if (local_root.is_leaf && local_root.contains_body)
     {
+	//std::cout << body << " in first" << std::endl;
 	createLeaves(local_root);
 	local_root.updateNodeOnInsert(local_root.body_local);
 	findQuadrant(local_root.body_local, local_root);
@@ -202,11 +203,13 @@ void Quadtree::insertBody(Body &body, Node &local_root)
     // if an empty leaf, place body in node
     else if (local_root.is_leaf && !local_root.contains_body)
     {
+	//std::cout << body << " in second" << std::endl;
 	local_root.setBody(body);
     }
     // if not a leaf, move towards leaves by searching again for quadrant
     else if (!local_root.is_leaf)
     {
+	//std::cout << body <<  " in third" << std::endl;
 	local_root.updateNodeOnInsert(body);
 	findQuadrant(body, local_root);
     }
@@ -353,8 +356,8 @@ void Quadtree::printPositions(Node &node, double time, std::ofstream &file)
 
 std::vector<std::vector < Node *> > Quadtree::findLocalNodes(int *bodies_per_node)
 {
-    max_block_size = 10;//int(1.05 * (root.nb_bodies)/(nb_proc));
-    min_block_size = 10;//int(0.95 * (root.nb_bodies)/(nb_proc));
+    max_block_size = 1000;//int(1.05 * (root.nb_bodies)/(nb_proc));
+    min_block_size = 1000;//int(0.95 * (root.nb_bodies)/(nb_proc));
     min_bodies_per_node = int(0.95 * root.nb_bodies/(nb_proc));
     max_bodies_per_node = int(1.05 * root.nb_bodies/(nb_proc));
 
