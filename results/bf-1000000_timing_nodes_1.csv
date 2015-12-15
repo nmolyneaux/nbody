@@ -1,4 +1,5 @@
-loading_data, 3.93953
-sending_initial,0.00405097
-writing_inital,51.3318
+loading_data, 2.44183
+sending_initial,0.00411391
+writing_inital,51.1039
 forces,allgatherv,writing
+61207.2,0.00181198,47.1455
