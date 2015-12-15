@@ -63,6 +63,9 @@ std::vector<double> readDataFile(const char *fileName)
 // ----------------- MAIN -----------------
 int main(int argc, char* argv[])
 {    
+  std::clock_t total_time;
+  std::clock_t start = std::clock();
+
     int nbBodies;
     std::vector<double> data_read;
     std::vector<double> mass;
@@ -85,13 +88,13 @@ int main(int argc, char* argv[])
 	velocities.push_back(data_read[i*5+4]);
     }
     std::vector<double> positions_fixed(positions);    
-    std::cout << "done" << std::endl;
+    std::cout << "done, " << nbBodies << " bodies." << std::endl;
     
     double dt = 0.1;
     double time_max = 0.1;
     double t = 0;   
     
-    Quadtree quad_tree =  Quadtree(0,0,10e5, 10e5,dt);
+    Quadtree quad_tree =  Quadtree(0,0,10e11, 10e11, dt, 1, 0.5);
     
     for (int i = 0; i < nbBodies; i++)
     {
@@ -102,31 +105,36 @@ int main(int argc, char* argv[])
     std::ofstream outputFile("qt_serial.csv");
     outputFile.precision(10);
     outputFile << "t,px,py" << std::endl;
-    quad_tree.printPositions(quad_tree.root, t, outputFile);//
+    quad_tree.printPositions(quad_tree.root, t, outputFile);
 
     std::vector<double> bodies_data;
 
     std::cout << "Starting time loop" << std::endl;
 
-    std::vector<std::vector < Node *> > node_assignment;
-
     for (; t < time_max; t += dt)
-    {   	
-	//if (int(t) % 1 == 0)
-	std::cout << "We are at time: " << t << std::endl;
-	//std::cout << quad_tree << std::endl;
-	//std::cout << quad_tree.root.nb_bodies << std::endl;
-	/*quad_tree.calculateForcesInBranch(quad_tree.root);	
+      { 
+	total_time = (std::clock() - start) / (double) CLOCKS_PER_SEC;
+	std::cout << "time taken: " << total_time  << std::endl;
+	quad_tree.calculateForcesInBranch(quad_tree.root);	
+	total_time = (std::clock() - start) / (double) CLOCKS_PER_SEC;
+	std::cout << "time taken: " << total_time  << std::endl;
 	quad_tree.moveBodies(quad_tree.root);
-	quad_tree.printPositions(quad_tree.root, t+dt, outputFile);
-	quad_tree.collectBodies(bodies_data, quad_tree.root);
+	total_time = (std::clock() - start) / (double) CLOCKS_PER_SEC;
+	std::cout << "time taken: " << total_time  << std::endl;
+	quad_tree.printPositions(quad_tree.root, t+dt, outputFile);    
+	total_time = (std::clock() - start) / (double) CLOCKS_PER_SEC;
+	std::cout << "time taken: " << total_time  << std::endl;
+	quad_tree.collectBodies(bodies_data, quad_tree.root, false);   
         quad_tree.empty();
-	
+	total_time = (std::clock() - start) / (double) CLOCKS_PER_SEC;
+	std::cout << "time taken: " << total_time  << std::endl;
 	for (int i = 0; i < nbBodies; i++)
 	{
 	    Body body(bodies_data[i*5], bodies_data[i*5+1], bodies_data[i*5+2], bodies_data[i*5+3], bodies_data[i*5+4]);
 	    quad_tree.insertBody(body, quad_tree.root);
 	}
-	bodies_data.clear();*/
+	bodies_data.clear();
     }
+    total_time = (std::clock() - start) / (double) CLOCKS_PER_SEC;
+    std::cout << "time taken: " << total_time  << std::endl;
 }

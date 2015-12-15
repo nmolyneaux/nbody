@@ -13,8 +13,6 @@ or the course of program parallelization for PC clusters
 #include <string>
 #include <sstream>
 #include <math.h>
-#include <ctime>
-#include <mpi.h>
 #include <vector>
 #include <stdexcept> // deal with exceptions
 #include <ctime> // timer

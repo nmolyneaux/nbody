@@ -62,6 +62,12 @@ int main(int argc, char* argv[])
   
   // --------------- Initialization ----------------
   MPI_Init(&argc, &argv); 
+
+  double start_time, end_time,start_time_total;
+  start_time_total = MPI_Wtime();
+  start_time = MPI_Wtime();
+
+  
   int my_rank;
   int nb_proc;
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank); 
@@ -73,9 +79,6 @@ int main(int argc, char* argv[])
       std::ofstream timingFile(argv[3]);
       timingFile.precision(10);
   }
-
-  double start_time, end_time;
-  start_time = MPI_Wtime();
 
   // constant variables required by the model
   const double tol = 1e3;
@@ -166,7 +169,7 @@ int main(int argc, char* argv[])
   
   // --------------- Time iterations ----------------
   double dt = 0.1;
-  double time_max = 0.5;  
+  double time_max = 0.1;  
   double t = 0;
   
   end_time = MPI_Wtime();
@@ -227,10 +230,12 @@ int main(int argc, char* argv[])
   if (my_rank == 0)
   {
       outputFile.close();
+      timingFile << "total_time," << MPI_Wtime() - start_time_total << std::endl;
       timingFile.close();
   }
   
   delete[] start_position;
   delete[] block_length;
+
   MPI_Finalize();
 }

@@ -18,7 +18,7 @@ public:
 
     ~Body();
     double pos_x, pos_y, mass, vel_x, vel_y, acc_x, acc_y;   
-
+    int proc;
     void printBody(std::ostream & os);
 };
 
@@ -59,14 +59,14 @@ class Quadtree
 public:
     Quadtree();
     Quadtree(double x, double y, double w, double h, double time_step);
-    Quadtree(double x, double y, double w, double h, double time_step, int procs);
+    Quadtree(double x, double y, double w, double h, double time_step, int procs, double precision);
     ~Quadtree();
    
     void empty();
     void updateRoot(double w, double h);
 
 
-    double dt;
+    double dt, theta;
     Node root;
 
     int min_bodies_per_node, max_bodies_per_node;   
@@ -85,14 +85,16 @@ public:
     void calculateAccelerations();
 
     void calculateAllForcesBody(Body & body, Node & node);
+
     void calculateForcesInBranch(Node & node);
+    void calculateForcesInBranch(Node & node, int my_rank);
 
     void printPositions(Node &node, double time, std::ofstream &file);
     void updateNodesAfterMove(Node &node, Body & body);
 
     void moveBodies(Node &node);
 
-    void collectBodies(std::vector<double> &bodies, Node & node);
+    void collectBodies(std::vector<double> &bodies, Node & node, bool with_proc);
 
     std::vector<std::vector<Node*> > findLocalNodes(int *bodies_per_node);
     void assignNode(int *bodies_per_node, std::vector<std::vector<Node*> > &node_assignment, Node &node);
