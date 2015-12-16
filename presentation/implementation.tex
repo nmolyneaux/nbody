@@ -1,0 +1,113 @@
+%\section{Brute-Force Implementation}
+%\begin{frame}[fragile]
+%  \frametitle{Brute-Force implementation}
+%  \begin{Verbatim}[frame=single, fontsize=\footnotesize]
+%if (my_rank == 0)
+%    load data
+%
+%broadcast data to all nodes
+%calculate blockLength // number of bodies per node
+%
+%for (t < tFinal)
+%
+%    for (i < myBlockLength)
+%        for (j < nbBodies)
+%            calculate force between body_i and body_j
+%        end for
+%     end for
+%     update myPositions
+%     scatter myPositions into allPositions
+%     if (my_rank == 0)
+%         write allPositions to file
+%end for
+%  \end{Verbatim}
+%\end{frame}
+%
+%\begin{frame}
+%\frametitle{Brute-Force timing diagram}
+%\begin{center}
+%\inputTikz{0.85}{../figures/timing_bf.tex}
+%\end{center}
+%\end{frame}
+%
+\section{Barnes-Hut Implementation}
+\begin{frame}[fragile]
+  \frametitle{Barnes-Hut implementation}
+  \begin{Verbatim}[frame=single, fontsize=\footnotesize]
+if (my_rank == 0)
+    load data
+broadcast data to all nodes
+create quadTree
+
+for (t < tFinal) 
+    assign branches to nodes
+
+    for (bodies in myBranches)
+        calculate force on body
+    end for
+
+    update myPositions
+    scatter my Positions into all Positions
+    if (my_rank == 0)
+        write allPositions to file
+
+    rebuild tree for next time step
+end for
+  \end{Verbatim}
+\end{frame}
+
+%\begin{frame}
+%\frametitle{Brute-Force timing diagram}
+%\begin{center}
+%  \inputTikz{0.85}{../figures/timing_qt.tex}
+%\end{center}
+%\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{``Large Distance''}
+  From what point do we approximate a group of bodies by the center of mass ?
+  \[\Downarrow\]
+  When the normalized distance between the body and the node goes above a threshold.\\
+\begin{Verbatim}[frame=single]
+if size(quad) / distance < theta
+    calculateForce(body, node)
+else
+    calculateForce(body, body)
+end if
+\end{Verbatim}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Load Balancing}
+  For a parallel implementation, how to guarantee that each node does (approximately) the same amout of work ?
+  \[\Downarrow\]
+  Splitting the tree into ``branches'' $\Rightarrow$ distributing among nodes.\\
+  \vspace{0.5cm}
+  To maximize performance: distribute branches close to each other to same node
+  \begin{itemize}
+    \item Concept of bins: each compute node has a capacity
+    \item When full, start giving branches to next compute node... and so on
+    \item Perform a tree walk (depth first)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Load Balancing - algorithm}
+  \begin{Verbatim}[frame=single, fontsize = \footnotesize]
+if node.nbBodies > computeNode.capacity
+    move down to children    
+else 
+    while node.nbBodies + computeNode.nbBodies > capacity
+        move to next computeNode
+    end while
+    
+    if node.nbBodies + LASTComputeNode.nbBodies > capacity
+        move down to child
+    else
+        assign this branch to computeNode
+        update computeNode.nbBodies
+    end if
+end if
+  \end{Verbatim}
+\end{frame}
