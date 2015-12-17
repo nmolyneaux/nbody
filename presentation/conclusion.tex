@@ -1,0 +1,22 @@
+\section{Conclusion}
+
+\begin{frame}
+\frametitle{Conclusion}
+\begin{itemize}
+  \item Quad tree rebuilt from scratch at each time step
+  \item Quad tree could be built in parallel: efficient if bodies are sorted
+  \item Spatial distribution of body assignment (load balancing) could be improved
+  \item[] 
+  \item A smart serial algorithm is \textbf{much} faster than a parallelized trivial approach
+  \item Upper bound of speedups can easily be reached, hence controlling serial and communcation times is critical
+\end{itemize}
+\end{frame}
+
+%\begin{frame}
+%  \frametitle{Barnes-Hut (QT) speed-up WITHOUT WRITING}
+%  \inputTikz{0.725}{../figures/speedup_qt_nw.tex}
+%\end{frame}
+
+
+
+

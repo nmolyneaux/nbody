@@ -1,0 +1,31 @@
+%\section{Problem Desciption}
+\begin{frame}
+  \frametitle{N-Body problem}
+  The interaction between two bodies can be modeled with
+  \[\boldsymbol{\norm{F}}_{m_1} = G\frac{m_1m_2}{r^2}\]
+  where the components of the force can be expressed as
+  \[F_{m_1,x} = \norm{\boldsymbol{F}}_{m_1}\frac{p_{2,x}-p_{1,x}}{r} \text{ and } F_{m_1,y} = \norm{\boldsymbol{F}}_{m_1}\frac{p_{2,y}-p_{1,y}}{r}\]
+  hence we have
+  \[a_{m_1,x} = G(p_{2,x}-p_{1,x})\frac{m_2}{r^3} \text{ and } a_{m_1,y} = G(p_{2,y}-p_{1,y})\frac{m_2}{r^3}\]
+\end{frame}
+
+\begin{frame}
+  \frametitle{Solutions \& complexity}
+  \begin{itemize}
+    \item Brute-force approach (abbreviated BF)
+      \begin{itemize}
+        \item Straight forward approach: calculate interactions between all bodies
+        \item Complexity of $\mathcal{O}(N^2) \Rightarrow $ very expensive for large problems 
+        \item Easy to implement and parallelize
+        \item Load balanced by construction
+      \end{itemize}
+    \item Barnes-Hut algorithm (abbreviated QT)
+      \begin{itemize}
+      \item Use Quad-Tree to store bodies
+      \item For ``large distances'', approximate bodies by center of mass
+      \item Complexity of $\mathcal{O}(NlogN)$
+      \item \textbf{Need to define ``large distances'' and guarantee load balancing}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+

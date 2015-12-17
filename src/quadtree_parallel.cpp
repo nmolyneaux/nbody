@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
       timingFile << "sending_initial," << end_time - start_time << std::endl;
   
   double dt = 0.1;
-  double time_max = 100;
+  double time_max = 100.0;
   double t = 0;   
   
   start_time = MPI_Wtime();

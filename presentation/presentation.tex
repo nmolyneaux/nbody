@@ -1,0 +1,148 @@
+\documentclass[xcolor=dvipsnames]{beamer}
+\usepackage{etex}
+\mode<presentation>
+
+\usetheme{Warsaw}
+% other themes: AnnArbor, Antibes, Bergen, Berkeley, Berlin, Boadilla, boxes, CambridgeUS, Copenhagen, Darmstadt, default, Dresden, Frankfurt, Goettingen,
+% Hannover, Ilmenau, JuanLesPins, Luebeck, Madrid, Maloe, Marburg, Montpellier, PaloAlto, Pittsburg, Rochester, Singapore, Szeged, classic
+
+%\usefonttheme{professionalfonts}
+% font themes: default, professionalfonts, serif, structurebold, structureitalicserif, structuresmallcapsserif
+
+% pdf is displayed in full screen mode automatically
+%\hypersetup{pdfpagemode=FullScreen}
+
+%define your own colours:
+\definecolor{Red}{rgb}{1,0,0}
+\definecolor{Blue}{rgb}{0,0,1}
+\definecolor{Green}{rgb}{0,1,0}
+\definecolor{magenta}{rgb}{1,0,.6}
+\definecolor{lightblue}{rgb}{0,.5,1}
+\definecolor{lightpurple}{rgb}{.6,.4,1}
+\definecolor{gold}{rgb}{.6,.5,0}
+\definecolor{orange}{rgb}{1,0.4,0}
+\definecolor{hotpink}{rgb}{1,0,0.5}
+\definecolor{newcolor2}{rgb}{.5,.3,.5}
+\definecolor{newcolor}{rgb}{0,.3,1}
+\definecolor{newcolor3}{rgb}{1,0,.35}
+\definecolor{darkgreen1}{rgb}{0, .35, 0}
+\definecolor{darkgreen}{rgb}{0, .6, 0}
+\definecolor{darkred}{rgb}{.75,0,0}
+
+\xdefinecolor{olive}{cmyk}{0.64,0,0.95,0.4}
+\xdefinecolor{purpleish}{cmyk}{0.75,0.75,0,0}
+\useoutertheme[subsection=false]{smoothbars}
+
+% to have the same footer on all slides
+%\setbeamertemplate{footline}[text line]{xxx xxx xxx}
+%\setbeamertemplate{footline}[text line]{} % or empty footer
+
+% include packages
+\usepackage{epstopdf}
+\usepackage{graphicx}
+\usepackage{float}
+%\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{amsthm}
+\usepackage{amsmath}
+%\usepackage{epsfig}
+%\usepackage{graphicx}
+%\usepackage[all,knot]{xy}
+%\xyoption{arc}
+%\usepackage{url}
+%\usepackage{media9} % for videos
+\usepackage{multimedia}
+%\usepackage{movie15}
+%\usepackage{hyperref}
+%\usepackage{setspace}
+\usepackage[utf8]{inputenc}
+%\usepackage[cyr]{aeguill}
+\usepackage[english]{babel}
+
+%% Figure related packages
+%\usepackage{graphicx}
+%\usepackage{epstopdf}
+%\usepackage[font=small,margin=1cm]{caption}
+%\usepackage[margin=1cm]{subcaption}
+\usepackage[caption=false]{subfig}
+\usepackage{standalone} % inserting full standalone tex files
+%\usepackage{tabularx} % allows the specification of the tabular width
+\newcommand{\inputTikz}[2]{%  
+     \scalebox{#1}{\input{#2}}  
+}
+\usepackage{textcomp} % permille
+\usepackage{siunitx}
+
+\usepackage{mathtools} % norm and absolute value
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}%
+
+\usepackage{fancyvrb} % box around verbatim
+
+
+%%%%%%%%%%%%%%%%%%%%%%% TIKZ related packages %%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{pgfplots}
+\usepackage{grffile}
+\pgfplotsset{compat=newest}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{plotmarks}
+\usepackage{xparse}
+\usetikzlibrary{calc}
+\usepackage{pgfplotstable}
+\input{$HOME/TexConfig/tikz.tex}
+
+\bibliographystyle{apalike}
+
+\usepackage{media9}
+
+\AtBeginSection{\frame{\sectionpage}}
+\AtBeginSubsection{\frame{\subsectionpage}}
+
+\defbeamertemplate{section page}{mine}[1][]{%
+  \begin{centering}
+    {\usebeamerfont{section name}\usebeamercolor[fg]{section name}#1}
+    \vskip1em\par
+    \begin{beamercolorbox}[sep=12pt,center]{part title}
+      \usebeamerfont{section title}\insertsection\par
+    \end{beamercolorbox}
+  \end{centering}
+}
+
+\defbeamertemplate{subsection page}{mine}[1][]{%
+  \begin{centering}
+    {\usebeamerfont{subsection name}\usebeamercolor[fg]{subsection name}#1}
+    \vskip1em\par
+    \begin{beamercolorbox}[sep=8pt,center,#1]{part title}
+      \usebeamerfont{subsection title}\insertsubsection\par
+    \end{beamercolorbox}
+  \end{centering}
+}
+\setbeamertemplate{section page}[mine]
+\setbeamertemplate{subsection page}[mine]
+
+\title{Parellelizing N-Body simulations with MPI}
+\subtitle{}
+\author{Nicholas Molyneaux}
+%\institute{{\tiny supervised by}\\ \vspace{.10cm}Aurelia Cuba-Ramos\\ \vspace{.10cm} Jean-François Molinari}
+\date{\scriptsize Project of Program Parallelization on PC clusters - Autumn 2015\\ \vspace{.10cm} Computational Science and Engineering\\ \vspace{.10cm}}
+
+
+
+\begin{document}
+\frame
+\maketitle
+%\frame{\frametitle{Table of contents}
+%	\tableofcontents
+%}
+
+\input{introduction.tex}
+\input{implementation.tex}
+\input{results.tex}
+\input{conclusion.tex}
+
+\bibliography{../references}
+
+\end{document}
+
+
