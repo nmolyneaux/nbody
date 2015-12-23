@@ -90,8 +90,8 @@ int main(int argc, char* argv[])
     std::vector<double> positions_fixed(positions);    
     std::cout << "done, " << nbBodies << " bodies." << std::endl;
     
-    double dt = 0.1;
-    double time_max = 0.1;
+    double dt = 0.001;
+    double time_max = 10;
     double t = 0;   
     
     Quadtree quad_tree =  Quadtree(0,0,10e11, 10e11, dt, 1, 0.5);
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 	quad_tree.insertBody(body, quad_tree.root);
     }
     
-    std::ofstream outputFile("qt_serial.csv");
+    std::ofstream outputFile(argv[2]);
     outputFile.precision(10);
     outputFile << "t,px,py" << std::endl;
     quad_tree.printPositions(quad_tree.root, t, outputFile);
@@ -114,20 +114,21 @@ int main(int argc, char* argv[])
     for (; t < time_max; t += dt)
       { 
 	total_time = (std::clock() - start) / (double) CLOCKS_PER_SEC;
-	std::cout << "time taken: " << total_time  << std::endl;
+	//std::cout << "time taken: " << total_time  << std::endl;
 	quad_tree.calculateForcesInBranch(quad_tree.root);	
 	total_time = (std::clock() - start) / (double) CLOCKS_PER_SEC;
-	std::cout << "time taken: " << total_time  << std::endl;
+	//std::cout << "time taken: " << total_time  << std::endl;
 	quad_tree.moveBodies(quad_tree.root);
 	total_time = (std::clock() - start) / (double) CLOCKS_PER_SEC;
-	std::cout << "time taken: " << total_time  << std::endl;
+	//std::cout << "time taken: " << total_time  << std::endl;
 	quad_tree.printPositions(quad_tree.root, t+dt, outputFile);    
 	total_time = (std::clock() - start) / (double) CLOCKS_PER_SEC;
-	std::cout << "time taken: " << total_time  << std::endl;
+	//std::cout << "time taken: " << total_time  << std::endl;
 	quad_tree.collectBodies(bodies_data, quad_tree.root, false);   
         quad_tree.empty();
 	total_time = (std::clock() - start) / (double) CLOCKS_PER_SEC;
-	std::cout << "time taken: " << total_time  << std::endl;
+	//std::cout << "time taken: " << total_time  << std::endl;
+
 	for (int i = 0; i < nbBodies; i++)
 	{
 	    Body body(bodies_data[i*5], bodies_data[i*5+1], bodies_data[i*5+2], bodies_data[i*5+3], bodies_data[i*5+4]);
@@ -136,5 +137,5 @@ int main(int argc, char* argv[])
 	bodies_data.clear();
     }
     total_time = (std::clock() - start) / (double) CLOCKS_PER_SEC;
-    std::cout << "time taken: " << total_time  << std::endl;
+    //std::cout << "time taken: " << total_time  << std::endl;
 }

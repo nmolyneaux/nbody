@@ -75,10 +75,16 @@ int main(int argc, char* argv[])
   int nb_proc;
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank); 
   MPI_Comm_size(MPI_COMM_WORLD, &nb_proc); 
-
-  std::ofstream timingFile(argv[3]);
-  timingFile.precision(10);
-
+  
+  std::ostringstream stream;
+  stream << argv[3] << "_rank_" << my_rank << ".csv";
+  std::string timing_file_name = stream.str();
+  std::ofstream timingFile(timing_file_name.c_str());
+  if (my_rank == 1) 
+  {      
+      timingFile.precision(10);
+  }
+  
 
   // Loads the data for the simulation into matrix. Separator is a comma ' ' (space)
   // Only the main processor does this, then sends the split data to workers
@@ -94,8 +100,10 @@ int main(int argc, char* argv[])
       if (nbBodies < nb_proc)
 	  throw std::invalid_argument("Number of bodies smaller than number of nodes");
       std::cout << "done" << std::endl;
-      timingFile << "loading_data, " << MPI_Wtime() - start_time << std::endl;
   }
+  if (my_rank == 1)
+      timingFile << "loading_data, " << MPI_Wtime() - start_time << std::endl;
+      //}
 
   // Broadcasts the number of bodies to all nodes
   MPI_Bcast(&nbBodies, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -104,11 +112,11 @@ int main(int argc, char* argv[])
   start_time = MPI_Wtime();
   MPI_Bcast(&bodies_data[0], 5*nbBodies, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   end_time = MPI_Wtime();
-  if (my_rank == 0)      
+  //if (my_rank == 0)      
       timingFile << "sending_initial," << end_time - start_time << std::endl;
   
   double dt = 0.1;
-  double time_max = 100.0;
+  double time_max = 1;
   double t = 0;   
   
   start_time = MPI_Wtime();
@@ -119,17 +127,17 @@ int main(int argc, char* argv[])
       quad_tree.insertBody(body, quad_tree.root);
   }
   end_time = MPI_Wtime();
-  if (my_rank == 0)
+  if (my_rank == 1)
       timingFile << "builing_first_qt," << end_time - start_time << std::endl;
 
   std::vector<std::vector < Node *> > node_assignment(nb_proc);
   
-  std::ofstream outputFile(argv[2]);
-  if (my_rank==0)
+  //std::ofstream outputFile(argv[2]);
+  if (my_rank==1)
   {
-      timingFile << "forces,allgatherv,rebuilding,writing" << std::endl;
-      outputFile.precision(10);
-      outputFile << "t,px,py" << std::endl;
+      timingFile << "forces,allgatherv,rebuilding" << std::endl;
+      //outputFile.precision(10);
+      //outputFile << "t,px,py" << std::endl;
       //quad_tree.printPositions(quad_tree.root, t, outputFile);
       std::cout << "Starting time loop" << std::endl;
   }
@@ -158,7 +166,6 @@ int main(int argc, char* argv[])
 
       // Load balancing and arrays containg the sizes for MPI gatehring
       start_time = MPI_Wtime();
-
       node_assignment = quad_tree.findLocalNodes(nb_bodies_per_node);
       start_position[0] = 0;
       //block_length[0] = (nb_bodies_per_node[0])*5;
@@ -183,17 +190,17 @@ int main(int argc, char* argv[])
 	  quad_tree.collectBodies(bodies_data_local, (*node_assignment[my_rank][i]), with_proc);
       }     
       
-      // Give all nodes the new information about the positoins and velocities
+      // Give all nodes the new information about the positions and velocities
       bodies_data.clear();
 
       end_time = MPI_Wtime();
-      if (my_rank == 0)
-	  timingFile << end_time - start_time;
+      if (my_rank == 1)
+	  timingFile << my_rank << "," << end_time - start_time;
 
       start_time = MPI_Wtime();
       MPI_Allgatherv(&bodies_data_local[0], block_length[my_rank], MPI_DOUBLE, &bodies_data[0], block_length, start_position,  MPI_DOUBLE, MPI_COMM_WORLD);
       end_time = MPI_Wtime();
-      if (my_rank == 0)
+      if (my_rank == 1)
 	  timingFile << "," << end_time - start_time;
 
       // rebuild tree for next time step
@@ -206,10 +213,10 @@ int main(int argc, char* argv[])
       }
   
       end_time = MPI_Wtime();
-      if (my_rank == 0)
-	  timingFile << "," << end_time - start_time;
+      if (my_rank == 1)
+	  timingFile << "," << end_time - start_time << std::endl;
 
-      start_time = MPI_Wtime();
+      /*start_time = MPI_Wtime();
       // print time step to file
       if(my_rank == 0 && with_proc)
       {
@@ -229,7 +236,7 @@ int main(int argc, char* argv[])
       end_time = MPI_Wtime();
       if (my_rank == 0)
 	  timingFile << "," << end_time - start_time << std::endl;
-
+      */
   }
   delete[] nb_bodies_per_node;
   delete[] block_length;
@@ -239,8 +246,10 @@ int main(int argc, char* argv[])
     {
       timingFile << "total_time," << MPI_Wtime() - start_time_total << std::endl;
       timingFile.close();
-      outputFile.close();
+      //outputFile.close();
     }
   MPI_Finalize();  
 }
+
+
 
