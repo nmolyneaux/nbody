@@ -242,6 +242,8 @@ void Quadtree::calculateForce(Body &body, Node &node)
 {
     const double G = 6.674e-11;
     double r = calculateDistance(body, node);
+    //r = std::max(r,2.5);
+	
     body.acc_x += (node.pos_x - body.pos_x) * G * node.mass / pow(r,3);
     body.acc_y += (node.pos_y - body.pos_y) * G * node.mass / pow(r,3);
 };
@@ -249,9 +251,16 @@ void Quadtree::calculateForce(Body &body, Node &node)
 void Quadtree::calculateForce(Body &body, Body &body_effect)
 {
     const double G = 6.674e-11;
-    double r = calculateDistance(body, body_effect);    
-    body.acc_x += (body_effect.pos_x - body.pos_x) * G * body_effect.mass / pow(r,3);
-    body.acc_y += (body_effect.pos_y - body.pos_y) * G * body_effect.mass / pow(r,3);  
+    double r = calculateDistance(body, body_effect);
+    r = std::max(r,2.5);
+    double acc_x_incr, acc_y_incr;
+    acc_x_incr = (body_effect.pos_x - body.pos_x) * G * body_effect.mass / pow(r,3);
+    acc_y_incr = (body_effect.pos_y - body.pos_y) * G * body_effect.mass / pow(r,3);
+
+    body.acc_x += acc_x_incr;
+    body.acc_y += acc_y_incr;
+//    std::cout << body.acc_x << " " << body.acc_y << std::endl;
+
 };
 
 void Quadtree::updateNodesAfterMove(Node &node, Body & body)

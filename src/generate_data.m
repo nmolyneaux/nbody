@@ -1,22 +1,21 @@
 clear all; close all; clc;
 
-N = 100;
+N = 1001;
+N1 = N;
 A=[];
 
-    mass = [rand(100,1)*1e9 + 5e9];
-    positions = [rand(100,1) * 20 + 50,rand(100,1) * 20 - 10]; 
-    %velocities = [velocities;rand(1000,2) * 10-5];% 60000.;
-    velocities =  2*[-positions(:,2),positions(:,1)-60];    
+for i=1:N
+    mass = rand(1,1)*5e15 + 5e16;
+    r = 325*(0.05 + rand(1,1));
+    t = 2 * pi * rand(1,1);
+    positions = [r * cos(t) ,r * sin(t)]; 
+    velocities =  2*[-positions(:,2),positions(:,1)];    
     A=[A;mass,positions,velocities];
-    
-    mass = [rand(100,1)*1e10 + 5e10];
-    positions = 2+[rand(100,1) * 20 - 70,rand(100,1) * 20 - 10]; 
-    %velocities = [velocities;rand(1000,2) * 10-5];% 60000.;
-    velocities =  2*[-positions(:,2),positions(:,1)+60];    
-    A=[A;mass,positions,velocities];
- 
-A = [A;1e15,60,0,0,0];
-A = [A;1e15,-60,0,0,0];
+end
+
+
+A = [A;6e17,0,0,0,0];
+%A = [A;1e20,-250,0,0,0];
 
 size(A)
-dlmwrite('bodies_202.dat',A,'delimiter',' ','precision',8);
+dlmwrite('bodies_1000.dat',A,'delimiter',' ','precision',8);
