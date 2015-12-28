@@ -1,6 +1,6 @@
 clear all; close all; clc;
 
-N = 1000;
+N = 100000;
 A=[];
 
     mass = [rand(N,1)*1e9 + 5e9];
@@ -9,4 +9,4 @@ A=[];
     A=[A;mass,positions,velocities];
     
 size(A)
-dlmwrite('bodies_1000.dat',A,'delimiter',' ','precision',8);
+dlmwrite('bodies_100000.dat',A,'delimiter',' ','precision',8);

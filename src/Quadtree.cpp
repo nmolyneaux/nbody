@@ -384,10 +384,9 @@ void Quadtree::printPositions(Node &node, double time, std::ofstream &file)
 
 std::vector<std::vector < Node *> > Quadtree::findLocalNodes(int *bodies_per_node)
 {
-    max_block_size = int(1.05 * (root.nb_bodies)/(2.5*nb_proc));
-    min_block_size = int(0.95 * (root.nb_bodies)/(2.5*nb_proc));
-    min_bodies_per_node = int(0.99 * root.nb_bodies/(nb_proc));
-    max_bodies_per_node = int(1.01 * root.nb_bodies/(nb_proc));
+    //max_block_size = 1000;//int(1.05 * (root.nb_bodies)/(2.5*nb_proc));
+    //min_block_size = int(0.95 * (root.nb_bodies)/(2.5*nb_proc));
+    //min_bodies_per_node = int(0.99 * root.nb_bodies/(nb_proc));
 
     for (int i = 0; i < nb_proc; i++)
 	*(bodies_per_node+i) = 0;
@@ -426,6 +425,8 @@ std::vector<std::vector < Node *> > Quadtree::findLocalNodes(int *bodies_per_nod
 
 void Quadtree::assignNode(int *bodies_per_node, std::vector<std::vector<Node*> > &node_assignment, Node &node)
 {
+    max_bodies_per_node = int(1.001 * root.nb_bodies/(nb_proc));
+
     if (node.nb_bodies > max_bodies_per_node && !node.is_leaf)
     {
 	/*std::cout << node.tr << std::endl;
