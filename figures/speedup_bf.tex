@@ -11,19 +11,17 @@
       height=9cm,
       grid=major,
       scaled x ticks = false,
-      legend entries={$10^5$ Amdahl, $10^5$ - Absolute, $10^5$ - Relative, $10^6$ Amdahl, $10^6$ - Relt \& Abs},
+      legend entries={Th. - $10^5$, Rel.  - $10^5$,Th. - $10^6$, Rel.  - $10^6$},
       legend pos = south east,
       tick label style={/pgf/number format/fixed},
     ]
-    \addplot[black,solid, domain=0:48, samples=100] {x/(1+(x-1)*0.014)};
+    \addplot[black,dashed, domain=0:48, samples=100] {(453.94)/(0.0035 + 453.94/x + 0.0015)};
     \pgfplotstableread{../results/100000_summary.csv}\dataSmall;
-    \addplot[solid,blue, thick] table[x expr=\thisrowno{0}, y expr=355/\thisrowno{2}] {\dataSmall};
-    \addplot[solid,red, thick] table[x expr=\thisrowno{0}, y expr=441.9/\thisrowno{2}] {\dataSmall};
+    \addplot[dashed,blue, thick] table[x expr=\thisrowno{0}, y expr=453/\thisrowno{2}] {\dataSmall};
 
-    \addplot[black,dashed, domain=0:48, samples=100] {x/(1+(x-1)*0.001)};
+    \addplot[black,solid, domain=0:48, samples=100] {(44875)/(0.035 + 44875/x + 0.025)};
     \pgfplotstableread{../results/1000000_summary.csv}\dataLarge;
-    \addplot[dashed,blue, thick] table[x expr=\thisrowno{0}, y expr=61100/\thisrowno{2}] {\dataLarge};
-    %\addplot[dashed,red, thick] table[x expr=\thisrowno{0}, y expr=61312/\thisrowno{2}] {\dataLarge};
+    \addplot[solid, blue, thick] table[x expr=\thisrowno{0}, y expr=44875/\thisrowno{2}] {\dataLarge};
 
 \end{axis}
 \end{tikzpicture}

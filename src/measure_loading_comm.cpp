@@ -99,13 +99,13 @@ int main(int argc, char* argv[])
   timingFile << "loading_data," << MPI_Wtime() - start_time << std::endl;
       
   // Broadcasts the number of bodies to all nodes
-  MPI_Bcast(&nbBodies, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  
-  bodies_data.resize(nbBodies * 5);
   start_time = MPI_Wtime();
-  MPI_Bcast(&bodies_data[0], 5*nbBodies, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  end_time = MPI_Wtime();
 
+  MPI_Bcast(&nbBodies, 1, MPI_INT, 0, MPI_COMM_WORLD); 
+  bodies_data.resize(nbBodies * 5);
+  MPI_Bcast(&bodies_data[0], 5*nbBodies, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+  end_time = MPI_Wtime();
   timingFile << "sending_initial," << end_time - start_time << std::endl;
   
   

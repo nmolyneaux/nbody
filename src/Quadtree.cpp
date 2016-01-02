@@ -425,7 +425,7 @@ std::vector<std::vector < Node *> > Quadtree::findLocalNodes(int *bodies_per_nod
 
 void Quadtree::assignNode(int *bodies_per_node, std::vector<std::vector<Node*> > &node_assignment, Node &node)
 {
-    max_bodies_per_node = int(1.001 * root.nb_bodies/(nb_proc));
+    max_bodies_per_node = int(1.01 * root.nb_bodies/(nb_proc));
 
     if (node.nb_bodies > max_bodies_per_node && !node.is_leaf)
     {
