@@ -2,7 +2,7 @@ clear; close all; clc;
 
 nodes = [1,2,4,8,12,16,20,24,28,32];
 
-base_name = {'../results/bf-100000_timing_nodes_'}
+base_name = {'../results/qt-100000_timing_nodes_'}
 base_name_end = {'.csv_rank_'};
 
 for i=1:length(nodes)
@@ -19,5 +19,5 @@ for i=1:length(nodes)
     nodes(i)
     mean(time,2)
     std(time,[],2)
-    min(time(4,:))
+    time
 end

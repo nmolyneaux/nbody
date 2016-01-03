@@ -20,10 +20,11 @@
 
   \node (startLoading) at (\leftAlign,0){};
   \node (middleReceiv0) at (\leftAlign + \loadingTime + 0.5*\sendingTime,0){};
-  \node (middleReceiv1) at (\leftAlign + \loadingTime + 1.5*\sendingTime,1*\vspace){};
-  \node (middleReceiv2) at (\leftAlign + \loadingTime + 2.5*\sendingTime,2*\vspace){};
-  \node (middleReceiv3) at (\leftAlign + \loadingTime + 3.5*\sendingTime,3*\vspace){};
-  \node (middleReceivFinal3) at (\endInitial + \sendingTime + \buildingTime + \computeTime + \sendingTime,3*\vspace){};
+  \node (middleReceiv1) at (\leftAlign + \loadingTime + 0.5*\sendingTime,1*\vspace){};
+  \node (middleReceiv2) at (\leftAlign + \loadingTime + 1.5*\sendingTime,2*\vspace){};
+  \node (middleReceiv3) at (\leftAlign + \loadingTime + 2.5*\sendingTime,3*\vspace){};
+  \node (middleReceivFinal3) at (\endInitial + \sendingTime,3*\vspace){};
+%  \node (middleReceivFinal3) at (\endInitial + \sendingTime + \buildingTime + \computeTime + \sendingTime,3*\vspace){};
   \node (middleReceivFinal0) at (\endInitial + \sendingTime + \buildingTime + \computeTime + \sendingTime,0){};
 
 
@@ -83,23 +84,24 @@
   \draw [red,decorate,decoration={brace,amplitude=8pt}] (\endInitial + \sendingTime, 0.45) -- node [pos=0.5, midway, yshift=0.5cm] {repeated $\frac{t_{max}}{dt}$ times} (\endInitial + \sendingTime + \buildingTime + \computeTime + \sendingTime,0.45);
 
   \draw[->] (-0.7, -3.5) -- (\endInitial + \sendingTime + \buildingTime + \computeTime + \sendingTime + 0.5 ,-3.5) node[xshift=0.5cm] {$t$};
+
   % critical path
-  \draw [->,thick] (startLoading.center) -- (middleReceivFinal0.center);
+  \draw [->,thick] (startLoading.center) -- (middleReceiv0.center) -- (middleReceiv1.center) -- (middleReceiv2.center) -- (middleReceiv3.center) -- (middleReceivFinal3.center);
 
   % legend
-  \filldraw[yellow!90!black, draw = black] (-0.2,-4.1) rectangle (0.2,-3.7);
+  %\filldraw[yellow!90!black, draw = black] (-0.2,-4.1) rectangle (0.2,-3.7);
   \filldraw[orange, draw=black] (-0.2,-4.7) rectangle (0.2,-4.3);
   \filldraw[blue!60!white, draw=black] (-0.2,-5.3) rectangle (0.2,-4.9);
   \filldraw[red!80!black, draw=black] (-0.2,-5.9) rectangle (0.2,-5.5);
   \filldraw[green!80!black, draw=black] (-0.2,-6.5) rectangle (0.2,-6.1);
   
-  \node[draw,circle,inner sep=1pt] at (0.6,-3.9) {\textbf{A}};
+  %\node[draw,circle,inner sep=1pt] at (0.6,-3.9) {\textbf{A}};
   \node[draw,circle,inner sep=1pt] at (0.6,-4.5) {\textbf{1}};
   \node[draw,circle,inner sep=1pt] at (0.6,-5.1) {\textbf{B}};
   \node[draw,circle,inner sep=1pt] at (0.6,-5.7) {\textbf{2}};
   \node[draw,circle,inner sep=1pt] at (0.6,-6.3) {\textbf{C}};
 
-  \node[right] at (0.9,-3.9) {- Loads inital data};
+  %\node[right] at (0.9,-3.9) {- Loads inital data};
   \node[right] at (0.9,-4.5) {- Sends/receives the inital data to all workers};
   \node[right] at (0.9,-5.1) {- Compute positions of bodies};
   \node[right] at (0.9,-5.7) {- Synchronization between nodes};

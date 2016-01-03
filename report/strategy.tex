@@ -6,10 +6,12 @@ The flow graps and timing diagrams are very similar for both appoaches. Once the
 \caption{Flowchart for the brut-force parallel implementation. Once the initial data is sent to all nodes, they update the positions of all bodies which are assigned to them, then send to all of the other nodes the updates positions. The step where the quad-tree is built (C) is only present for Barnes-Hut algorithm, in the brute-force approach this step does no exist.}
 \label{fig:flow_chart}
 \end{figure}
-\subsection{Load-balancing}
+\subsection{Load-balancing}\label{sec:lb}
 As the brute-force strategy is load-balanced by construction, nothing needs to be done to keep each node doing the same work. On the other hand, the quad-tree approach needs to be carefully load-balanced to keep each noe doing the same amout of work. Since the quad-tree stores the information based on spacial coordinates, simply splitting the tree at the same depth by distributing to each node a branch is not acceptable. By doing this, the case would often occur that the most of the bodies are found in one quadrant, whilst the other quadrants are empty.\\
 To solve this problem, the tree is distributed by performing a tree walk. Starting from the root of the tree, following a depth-first search, each  branch tries to be assigned to a node. For this to happen, the compute-nodes can be imaged as bins with a capacity. As the tree is explored, the branch are either assigned to a compute-node if the capacity allows it, or the branch is split into its sub-branches and the process is started again. The code shown in Figure \ref{fig:load-balancing} presents this idea.
-\begin{figure}
+\begin{figure}[H]
+  \begin{adjustwidth}{-0.5cm}{-0.5cm}   
+
   \begin{minted}[breaklines,fontsize=\footnotesize, linenos, bgcolor=bg, frame=lines]{c++}
 void Quadtree::assignNode(int *bodies_per_node,
                           std::vector<std::vector<Node*> > &node_assignment,
@@ -49,12 +51,21 @@ void Quadtree::assignNode(int *bodies_per_node,
     }
 }
   \end{minted}
-\caption{Load balancing code. This is a tree-walk and each branch is either assigned to a node, or split into the sub-branches and then the process is repeated.}
+\caption{Load balancing code. This is a tree-walk and each branch is either assigned to a node, or split into the sub-branches and then the process is repeated. This is a recursive function which allows the tree-walk to be performed easily.}
 \label{fig:load-balancing}
+  \end{adjustwidth}
+
 \end{figure}
 \subsection{Theoretical speedup}
-The timing diagram (Figure \ref{fig:timing}) is also nearly the same for both approaches. The only significant differences concerns the presence/absence of the quad-tree construction. The other differences which cannot be observed on the diagram, is the relative length of each step. For the brute-force approach, the computation step is multiple longer than any other step, whereas for the quad-tree approach the difference in duration is not as large. The critical path is show through the diagram as the black arrow. Since the synchronization between nodes is a blocking process, after each computation stage each node must wait for all the other to finish there calculations, this also emphasizes how import the load balancing is (see section \ref{}). The timing diagram assumes all nodes are load balanced, the critical path after the initial calculation step can be any one; in practice, it will be the last node which finishes its own calculations.\\
-From Figure \ref{fig:timing}, the theoretical speedup can be calculated. Since each node builds the same tree, this step can never be accelerated by parallelizing the code, as well as loading the data from a file. The communications must also be taken into account when estimating the theoretical speedup. Hence only the computation step can be accelerated, until it becomes insignificant compared to the other steps. The theoretical speedup can hence be derived knowing the following quantities: $t_{comm}$ as the time to send the positions, velocities and masses from master to all nodes; $t_{building}$ as the time to build the quad-tree and the time to calculate the body assignment (see load balancing at section \ref{}); $t_{comp}$ as the time to compute forces and update positions for all bodies on one node; $t_{sync}$ as the time to synchronize positions after one time step (this should be similar to $t_{comm}$ except that the function is an MPI\_Allgatherv instead of a MPI\_Bcast hence the times will be different). For the timing diagram drawn in Figure \ref{fig:timing}, hence a total of 4 nodes, the theoretical speedup formula is as follows; based on the measurements which are shown in Table \ref{tab:qt:measure} a constant time is assumed for both $t_{comm}$ and $t_{sync}$:
+The timing diagram (Figure \ref{fig:timing}) is also nearly the same for both approaches. The only significant differences concerns the presence/absence of the quad-tree construction. The other differences which cannot be observed on the diagram, is the relative length of each step. For the brute-force approach, the computation step is multiple longer than any other step, whereas for the quad-tree approach the difference in duration is not as large. The critical path is show through the diagram as the black arrow. Since the synchronization between nodes is a blocking process, after each computation stage each node must wait for all the other to finish there calculations, this also emphasizes how import the load balancing is (see section \ref{sec:lb}). The timing diagram assumes all nodes are load balanced, the critical path after the initial calculation step can be any one; in practice, it will be the last node which finishes its own calculations.\\
+From Figure \ref{fig:timing}, the theoretical speedup can be calculated. Since each node builds the same tree, this step can never be accelerated by parallelizing the code, as well as loading the data from a file. The communications must also be taken into account when estimating the theoretical speedup. Hence only the computation step can be accelerated, until it becomes insignificant compared to the other steps. The theoretical speedup can hence be derived knowing the following quantities:
+\begin{itemize}
+\item $t_{comm}$ as the time to send the positions, velocities and masses from master to all nodes
+\item  $t_{building}$ as the time to build the quad-tree and the time to calculate the body assignment (see load balancing at section \ref{sec:lb})
+\item $t_{comp}$ as the time to compute forces and update positions for all bodies on one node
+\item $t_{sync}$ as the time to synchronize positions after one time step (this should be similar to $t_{comm}$ except that the function is an MPI\_Allgatherv instead of a MPI\_Bcast hence the times will be different)
+\end{itemize}
+Based on the measurements which are shown in Table \ref{tab:qt:measure} a constant time is assumed for both $t_{comm}$ and $t_{sync}$. For a few nodes, the computation time is significantly larger than the communication time, where as for large numbers of nodes the times become closer to constants. For the timing diagram drawn in Figure \ref{fig:timing}, hence 4 nodes and only one time step, the theoretical speedup formula is as follows:
 \begin{align}
 t_{serial}& = t_{building} + t_{comp}\\
 t_{par} &= t_{comm} + t_{building } + \frac{t_{comp}}{4} + t_{sync}
@@ -62,7 +73,20 @@ t_{par} &= t_{comm} + t_{building } + \frac{t_{comp}}{4} + t_{sync}
 \[S_{th} = \frac{t_{serial}}{t_{par}} = \frac{t_{building} + t_{comp}}{t_{comm} + t_{building } + \frac{t_{comp}}{4} + t_{sync}}\]
 And this can be generalized to $k$ nodes: 
 \[S_{th,k} = \frac{t_{building} + t_{comp}}{ t_{comm} + t_{building} + \frac{t_{comp}}{k} + t_{sync}}\]
-This equation is valid under the assumption that the computation and quad-tree building times are significantly larger than the communication times, and that the nodes are perfectly load balanced. For the brute-force approach the same methodology is applied, except that the building time is not present (one can simply set $t_{building}=0$ in the formula for $S_{th,k}$).
+This equation is valid under the assumption that the computation and quad-tree building times are significantly larger than the communication times, and that the nodes are perfectly load balanced. For the brute-force approach the same methodology is applied, except that the building time is not present (one can simply set $t_{building}=0$ in the formula for $S_{th,k}$).\\
+The values which are used for the calculation of the theoretical speedups are based on Tables \ref{tab:bf:10e6}, \ref{tab:qt:10e5} and \ref{tab:qt:10e6}. A summary of these values is given in Table \ref{tab:summary:th_su}.
+\begin{table}[H]
+\centering
+\begin{tabular}{l|cccccc}
+Algorithm                    & \# bodies & $t_{serial}$ & $t_{comm}$ & $t_{building}$ & $t_{comp}$ & $t_{sync}$ \\
+\hline\multirow{2}{*}{Brute-force} & $10^5$    & 453.94  & 0.0035 & -  & 453.81 & 0.0015\\
+                             & $10^6$    & 44'875&  0.035 & -  & 44'874 & 0.025\\     
+\multirow{2}{*}{Barnes-Hut}  & $10^5$    & 8.24 & 0.0038 & 0.2 & 8.23 & 0.003\\
+                             & $10^6$    & 100 & 0.045 & 2.7 & 97.8 & 0.03\\
+\end{tabular}
+\caption{Values used for the calculation of the theoretical speedups.}
+\label{tab:summary:th_su}
+\end{table}
 
 \begin{figure}[H]
 \centering
@@ -71,12 +95,3 @@ This equation is valid under the assumption that the computation and quad-tree b
 \label{fig:timing}
 \end{figure}
 
-\subsection{Brut-Force flowgraph} With this methodology the only data which is exchanged is the updated positions. For this brut-force approach, this data must be updated at each time step, hence less data cannot be transfered. The output of the positions at each time step could be done in parallel using MPI's write methods, but at this stage this is not done. 
-
-\subsection{Brut-Force timing diagram}
-In this case, the slowest path is straightforward to estimate. The assumption that the intial distribution of the data between the nodes is done sequentially. Once the data is distributed and the first time step calculated, the idle time of each node is only the time it takes for the master node to write the data to a file. This step could also be parallelized by either using an ``MPI\_Write'', or getting each node to write a file locally and then regrouping all the data to the main node. 
-
-
-
-\subsection{Quad-Tree}
-The flowgraph and timing diagram will be very similar. The main differences will reside in the initialization processes which requires to build the full tree and the type and amout of data exchange between each node. 

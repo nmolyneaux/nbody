@@ -14,18 +14,27 @@ For a simple brut-force approach, the computations follow $\mathcal{O}(n^2)$ at 
 For Barnes-Hut's algorithm, this ratio remains the same. The choice is made to rebuild the quad-tree from scratch at each time iteration, this makes the implementation much easier and the time taken is not significant compared to the computation time. With this in mind, the communications are the same as for the brute-force approach, since at each time step the positions and velocities of each body must be passed to all compute nodes again. Therefore the calculations are in $\mathcal{O}(nlogn)$ and the communications are $\mathcal{O}(n)$.
 \subsection{Amdahl's Law}
 Since the goal is the analyse the parallel aspects of the problem, the time taken to write the results to a file at each time step are not taken into account. This part is significant and limits the speedup values to very poor ones. In both cases, the initial data is stored in a file which must be read to get the initial positions and velocities.  
-\paragraph{Brute-Force} For the brut force approach, since the data is stored in arrays, very little pre-processing is required. The fraction of non-parallelizable code is very low, it is only loading the data from a file. XXX PERFORM CORECT MESAURMENETS Some quick measurements give a fraction $f=0.005$ as the serial part. Hence the optimistic upper bound for the speed can be calculated and plotted. For the improved estimation, the communication fraction can be estimated to $f_{comm} = 0.015$, which takes into account the time to distribute the inital situation to the nodes. The data which must be distributed is the mass, initial velocities and positions to all nodes. Hence the new ``realistic'' speedup graph is shown below, Figure \ref{fig:th_su}. This speedup graph is still far too optimistic as it does not take into account the communication at each time step.\\
+\paragraph{Brute-Force} For the brut force approach, since the data is stored in arrays, very little pre-processing is required. The fraction of non-parallelizable code is close to nothing, as the initial time during which the data is loaded from a file is neglected. Table \ref{tab:amdahl} contains the values required to use Amdahl's law for predicting the speedup. Since there is no calculation performed serially, only the communication time is relevant. In Figure \ref{fig:amdahl}, the speedups are shown for two different problem sizes, but it is apparent that such large speedups for large numbers of nodes is not feasible.
 
 \paragraph{Quad-Tree}
-For a quad-tree method, the serial part is still only reading the initial data. Since each node builds its own quad-tree, the serial part remains only reading the initial data. Hence the initial communication will be the distribution of the initial positions and velocities. The measurements which are performed for the brute-force approach are still valid, as the difference happens during the time iterations. Except that now the computation time is significantly faster, hence the fraction of serial code is larger.  With this regard, the optmistic upperbound will not be as high as previously since the computations are in $\mathcal{O}(nlogn)$ (and not $\mathcal{O}(n^2)$) , but the communications are the same. Figure \ref{fig:th_su} shows a first estimate of the speedup, based on the measurements of the serial execution time.\\
+For a quad-tree method, the serial part is still only reading the initial data. Since each node builds its own quad-tree, the serial part remains only reading the initial data. Hence the initial communication will be the distribution of the initial positions and velocities. The measurements which are performed for the brute-force approach are still valid, as the difference happens during the time iterations. Except that now the computation time is significantly faster, hence the fraction of serial code is larger.  With this regard, the optmistic upperbound will not be as high as previously since the computations are in $\mathcal{O}(nlogn)$ (and not $\mathcal{O}(n^2)$) , but the communications are the same. Here the limitation of Amdahl's law is evident. Since each compute-node builds the tree, this time is not counted in Amdahl's law but it is the limiting factor when the number of compute-nodes becomes large.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{l|ccccc}
+Algorithm                    & \# bodies & Serial total time [s] & Serial cal. [s] & Initial comm. [s] & Fraction \\
+\hline\multirow{2}{*}{Brute-force} & $10^5$    & 450  & - & 0.006 &$1.33\cdot 10^{-5}$\\
+                             & $10^6$    & 45'000& - & 0.06  &$1.33\cdot 10^{-6}$\\     
+\multirow{2}{*}{Barnes-Hut}  & $10^5$    & 8.5  & - & 0.006 &$7.06\cdot 10^{-4}$\\
+                             & $10^6$    & 100  & - & 0.06  &$6.00\cdot 10^{-4}$\\
+\end{tabular}
+\caption{Measurements for Amdahl's estimation of the speedups. Since the time taken to read the initial data from a file is not considered, there is not any serial calculation. Only the time taken for the initial communication is relevant.}
+\label{tab:amdahl}
+\end{table}
 
 \begin{figure}[H]
 \input{../figures/amdahl_bf.tex}
-\caption{Theoretical speedup chart for both the brut-force approach and the quad-tree method. These are estimations based on some simple timings on a serial implementation.}
-\label{fig:th_su}
+\caption{Theoretical speedup chart for both the brut-force approach and the quad-tree method. These are estimations based on some simple timings on a serial implementation. It is already apparent that these values are too high. The fact that, with the Barnes-Hut algorithm the speedup is still quasi-linear using 2'000 nodes emphasizes that these values are not realistic.}
+\label{fig:amdahl}
 \end{figure}
-
-%f = 0.001 hence max is very high.
-%Required communicatpon: positions swapped times n_procs. gigabit eternet: 125MB/s latency: 0.125ms
-%fcomm = 0.015           ftot = 0.001 hence plot theoretical best and lower best.
 
