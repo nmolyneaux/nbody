@@ -1,0 +1,43 @@
+\documentclass[border=2pt]{standalone}
+\usepackage{pgfplots}
+
+\begin{document}
+\begin{tikzpicture}
+  \begin{axis}[
+      xlabel= \# iterations,
+      ylabel = Compute time (s),
+      ylabel style={rotate=0},
+      width=14cm,
+      height=9cm,
+      ymin=0.75,
+      ymax=1.15,
+      xmin=-1,
+      xmax=148,
+      xtick={0.5,5,11,21,35,53,75,101,131},
+      xticklabels={1,4,8,12,16,20,24,28,32},
+      extra x ticks = {2},
+      extra x tick label={2},
+      extra x tick style={x tick label style={yshift=-0.32cm}},
+      legend entries={},
+      legend pos = south east,
+      tick label style={/pgf/number format/fixed},
+]
+    \pgfplotstableread[col sep=comma]{../figures/computeTimesNormalizedBF10e6.csv}\data;
+    \addplot[only marks, red] table[x=pos, y=val] {\data};
+    \addplot[mark=none,black] coordinates {(1, 0.7) (1, 1.2)};
+    \addplot[mark=none,black] coordinates {(3, 0.7) (3, 1.2)};
+    \addplot[mark=none,black] coordinates {(7, 0.7) (7, 1.2)};
+    \addplot[mark=none,black] coordinates {(15, 0.7) (15, 1.2)};
+    \addplot[mark=none,black] coordinates {(27, 0.7) (27, 1.2)};
+    \addplot[mark=none,black] coordinates {(43, 0.7) (43, 1.2)};
+    \addplot[mark=none,black] coordinates {(63, 0.7) (63, 1.2)};
+    \addplot[mark=none,black] coordinates {(87, 0.7) (87, 1.2)};
+    \addplot[mark=none,black] coordinates {(115, 0.7) (115, 1.2)};
+    \addplot[mark=none,black] coordinates {(147, 0.7) (147, 1.2)};
+
+
+
+
+\end{axis}
+\end{tikzpicture}
+\end{document}

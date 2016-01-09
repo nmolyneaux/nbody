@@ -65,7 +65,7 @@ From Figure \ref{fig:timing}, the theoretical speedup can be calculated. Since e
 \item $t_{comp}$ as the time to compute forces and update positions for all bodies on one node
 \item $t_{sync}$ as the time to synchronize positions after one time step (this should be similar to $t_{comm}$ except that the function is an MPI\_Allgatherv instead of a MPI\_Bcast hence the times will be different)
 \end{itemize}
-Based on the measurements which are shown in Table \ref{tab:qt:measure} a constant time is assumed for both $t_{comm}$ and $t_{sync}$. For a few nodes, the computation time is significantly larger than the communication time, where as for large numbers of nodes the times become closer to constants. For the timing diagram drawn in Figure \ref{fig:timing}, hence 4 nodes and only one time step, the theoretical speedup formula is as follows:
+Based on the measurements which are shown in Tables \ref{tab:qt:10e6} and \ref{tab:qt:10e6}, a constant time is assumed for both $t_{comm}$ and $t_{sync}$. For a few nodes, the computation time is significantly larger than the communication time, where as for large numbers of nodes the times become closer to constants. For the timing diagram drawn in Figure \ref{fig:timing}, hence 4 nodes and only one time step, the theoretical speedup formula is as follows:
 \begin{align}
 t_{serial}& = t_{building} + t_{comp}\\
 t_{par} &= t_{comm} + t_{building } + \frac{t_{comp}}{4} + t_{sync}

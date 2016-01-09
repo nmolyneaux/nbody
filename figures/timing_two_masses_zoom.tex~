@@ -1,0 +1,26 @@
+\documentclass[border=2pt]{standalone}
+\usepackage{pgfplots}
+
+\begin{document}
+\begin{tikzpicture}
+  \begin{axis}[
+      xlabel= \# iterations,
+      ylabel = Compute time (s),
+      ylabel style={rotate=0},
+      width=14cm,
+      height=9cm,
+      grid=major,
+      ymin=0,
+      scaled x ticks = false,
+      legend entries={$node_0$,$node_1$},
+      legend pos = south east,
+      tick label style={/pgf/number format/fixed},
+    ]
+    \pgfplotstableread[col sep=comma]{../figures/timing_two_masses_zoom_4500_6000.csv}\data;
+    \addplot[solid,black] table[x=time, y=node0] {\data};
+    \addplot[solid,blue] table[x=time, y=node1] {\data};
+
+
+\end{axis}
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,28 @@
+\documentclass[border=2pt]{standalone}
+\usepackage{pgfplots}
+
+\begin{document}
+\begin{tikzpicture}
+  \begin{axis}[
+      xlabel= \# nodes,
+      ylabel = Speed-up,
+      ylabel style={rotate=0},
+      width=14cm,
+      height=9cm,
+      grid=major,
+      scaled x ticks = false,
+      legend entries={Th. - $10^5$, Rel.  - $10^5$,Th. - $10^6$, Rel.  - $10^6$},
+      legend pos = south east,
+      tick label style={/pgf/number format/fixed},
+    ]
+    \addplot[black,dashed, domain=0:48, samples=100] {(453.94)/(0.0035 + 453.94/x + 0.0015)};
+    \pgfplotstableread{../results/100000_summary.csv}\dataSmall;
+    \addplot[dashed,blue, thick] table[x expr=\thisrowno{0}, y expr=453/\thisrowno{2}] {\dataSmall};
+
+    \addplot[black,solid, domain=0:48, samples=100] {(44875)/(0.035 + 44875/x + 0.025)};
+    \pgfplotstableread{../results/1000000_summary.csv}\dataLarge;
+    \addplot[solid, blue, thick] table[x expr=\thisrowno{0}, y expr=44875/\thisrowno{2}] {\dataLarge};
+
+\end{axis}
+\end{tikzpicture}
+\end{document}
