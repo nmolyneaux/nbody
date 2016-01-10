@@ -4,7 +4,7 @@ Author: Nicholas Molyneaux
 Date : 28 November 2015
 
 Quad tree approach to the n-body problem. Implemented
-or the course of program parallelization for PC clusters
+for the course of program parallelization for PC clusters
 
  ------------------------------------------------*/
 
@@ -30,7 +30,6 @@ Body::~Body(){};
 
 void Body::printBody(std::ostream &os)
 {
-    //os << pos_x << "," << pos_y << "," << vel_x << "," << vel_y << "," << acc_x << "," << acc_y << "," <<  mass << std::endl;
     os << pos_x << "," << pos_y << "," << proc << std::endl;
 };
 
@@ -66,8 +65,8 @@ Node::Node(Node *parent_ptr, double x, double y, double w, double h)
     height = h;
     is_leaf = true;
     contains_body = false;
-    parent = parent_ptr;
-    depth = parent->depth + 1;
+    //parent = parent_ptr;
+    depth = parent_ptr->depth + 1;
 
     // bodies average
     nb_bodies = 0;
@@ -78,25 +77,35 @@ Node::Node(Node *parent_ptr, double x, double y, double w, double h)
     vel_y = 0;
 };
 
-Node::~Node(){};
+Node::~Node()
+{
+    //delete parent;
+};
 
 void Node::deleteNode()
-{
-    //std::cout << *this << std::endl;
+{    
+    if (!is_leaf)
     {
-	if (!is_leaf)
+	if (tr->is_leaf == 1)
+	{
+	    delete tr;
+	    delete tl;
+	    delete bl;
+	    delete br;
+	    is_leaf = true;
+	}
+	else
 	{
 	    tr->deleteNode();
 	    tl->deleteNode();
 	    bl->deleteNode();
 	    br->deleteNode();
-	    is_leaf = true;
-	}
-	else if (is_leaf)
-	{
-	    if (depth != 0)
-		delete this;
-	}
+	}	    
+    }
+    else
+    {
+	if (depth != 0)
+	    delete this;
     }
 }
 
@@ -106,8 +115,6 @@ void Node::setBody(Body &body)
     pos_x = body.pos_x;
     pos_y = body.pos_y;
     mass = body.mass;
-    //vel_x = body.vel_x;
-    //vel_y = body.vel_y;
     contains_body = true;
 };
 
@@ -117,8 +124,6 @@ void Node::updateNodeOnInsert(Body &body)
     pos_x = pos_x * (mass)/(mass+body.mass) + body.mass/(mass+body.mass) * (body.pos_x);
     pos_y = pos_y * (mass)/(mass+body.mass) + body.mass/(mass+body.mass) * (body.pos_y);
     mass = mass * (nb_bodies-1)/nb_bodies + (body.mass)/nb_bodies;
-    //vel_x = vel_x * (nb_bodies-1)/nb_bodies + (body.vel_x)/nb_bodies;
-    //vel_y = vel_y * (nb_bodies-1)/nb_bodies + (body.vel_y)/nb_bodies;
 };
 
 // -------------------- QUADTREE class ---------------------
@@ -194,7 +199,6 @@ void Quadtree::insertBody(Body &body, Node &local_root)
     // the old body and new body must be replaced
     if (local_root.is_leaf && local_root.contains_body)
     {
-	//std::cout << body << " in first" << std::endl;
 	createLeaves(local_root);
 	local_root.updateNodeOnInsert(local_root.body_local);
 	findQuadrant(local_root.body_local, local_root);
@@ -204,13 +208,11 @@ void Quadtree::insertBody(Body &body, Node &local_root)
     // if an empty leaf, place body in node
     else if (local_root.is_leaf && !local_root.contains_body)
     {
-	//std::cout << body << " in second" << std::endl;
 	local_root.setBody(body);
     }
     // if not a leaf, move towards leaves by searching again for quadrant
     else if (!local_root.is_leaf)
     {
-	//std::cout << body <<  " in third" << std::endl;
 	local_root.updateNodeOnInsert(body);
 	findQuadrant(body, local_root);
     }
@@ -242,7 +244,6 @@ void Quadtree::calculateForce(Body &body, Node &node)
 {
     const double G = 6.674e-11;
     double r = calculateDistance(body, node);
-    //r = std::max(r,2.5);
 	
     body.acc_x += (node.pos_x - body.pos_x) * G * node.mass / pow(r,3);
     body.acc_y += (node.pos_y - body.pos_y) * G * node.mass / pow(r,3);
@@ -259,19 +260,8 @@ void Quadtree::calculateForce(Body &body, Body &body_effect)
 
     body.acc_x += acc_x_incr;
     body.acc_y += acc_y_incr;
-//    std::cout << body.acc_x << " " << body.acc_y << std::endl;
 
 };
-
-void Quadtree::updateNodesAfterMove(Node &node, Body & body)
-{
-    if (node.depth != 0)
-    {
-	node.pos_x = (dt * body.vel_x + dt*dt * body.acc_x)*body.mass/(node.mass+body.mass);
-	node.pos_y = (dt * body.vel_y + dt*dt * body.acc_y)*body.mass/(node.mass+body.mass);
-	updateNodesAfterMove(*node.parent, body);
-    }   
-}
 
 void Quadtree::moveBodies(Node &node)
 {
@@ -283,7 +273,6 @@ void Quadtree::moveBodies(Node &node)
 	node.body_local.vel_y += dt * node.body_local.acc_y;
 	node.body_local.acc_x = 0.0;
 	node.body_local.acc_y = 0.0;
-	//updateNodesAfterMove(*node.parent, node.body_local);
     }
     else if (!node.is_leaf)
     {
@@ -384,10 +373,6 @@ void Quadtree::printPositions(Node &node, double time, std::ofstream &file)
 
 std::vector<std::vector < Node *> > Quadtree::findLocalNodes(int *bodies_per_node)
 {
-    //max_block_size = 1000;//int(1.05 * (root.nb_bodies)/(2.5*nb_proc));
-    //min_block_size = int(0.95 * (root.nb_bodies)/(2.5*nb_proc));
-    //min_bodies_per_node = int(0.99 * root.nb_bodies/(nb_proc));
-
     for (int i = 0; i < nb_proc; i++)
 	*(bodies_per_node+i) = 0;
 
@@ -396,43 +381,13 @@ std::vector<std::vector < Node *> > Quadtree::findLocalNodes(int *bodies_per_nod
     return node_assignment;
 }
 
-/*void Quadtree::assignNode(int *bodies_per_node, std::vector<std::vector<Node*> > &node_assignment, Node &node)
-{
-    
-    if (node.nb_bodies <= max_block_size && !node.is_leaf)
-    {
-	int i = 0;
-	while((( *(bodies_per_node+i) + node.nb_bodies) > max_bodies_per_node) && i < (nb_proc - 1) )
-	{
-	    i++;	    
-	}
-	node_assignment[i].push_back(&node);
-	*(bodies_per_node+i) += node.nb_bodies;
-    }
-    else if (node.nb_bodies > max_block_size && !node.is_leaf)
-    {
-	assignNode(bodies_per_node, node_assignment, *node.tr);
-	assignNode(bodies_per_node, node_assignment, *node.tl);
-	assignNode(bodies_per_node, node_assignment, *node.bl);
-	assignNode(bodies_per_node, node_assignment, *node.br);
-    }
-    else if(node.is_leaf && node.contains_body)
-    {
-	node_assignment[nb_proc-1].push_back(&node);
-	*(bodies_per_node+nb_proc-1) += 1;;
-    }
-    }*/
-
 void Quadtree::assignNode(int *bodies_per_node, std::vector<std::vector<Node*> > &node_assignment, Node &node)
 {
     max_bodies_per_node = int(1.01 * root.nb_bodies/(nb_proc));
 
     if (node.nb_bodies > max_bodies_per_node && !node.is_leaf)
     {
-	/*std::cout << node.tr << std::endl;
-	std::cout << node.tl << std::endl;
-	std::cout << node.bl << std::endl;
-	std::cout << node.br << std::endl;*/
+
 	assignNode(bodies_per_node, node_assignment, *node.tr);
 	assignNode(bodies_per_node, node_assignment, *node.tl);
 	assignNode(bodies_per_node, node_assignment, *node.bl);
@@ -445,10 +400,6 @@ void Quadtree::assignNode(int *bodies_per_node, std::vector<std::vector<Node*> >
 	    i++;
 	if (i == nb_proc)
 	{
-	    /*std::cout << node.tr << std::endl;
-	std::cout << node.tl << std::endl;
-	std::cout << node.bl << std::endl;
-	std::cout << node.br << std::endl;*/
 	    assignNode(bodies_per_node, node_assignment, *node.tr);
 	    assignNode(bodies_per_node, node_assignment, *node.tl);
 	    assignNode(bodies_per_node, node_assignment, *node.bl);

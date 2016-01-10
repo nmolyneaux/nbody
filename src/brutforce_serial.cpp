@@ -20,7 +20,7 @@ or the course of program parallelization for PC clusters
 
 
 // --------------------------------------- 
-// -------- Read into Eigen matrix -------
+// -------- Read csv into array -------
 std::vector<double> readDataFile(const char *fileName)
 {
   int nbCols = 0;
@@ -95,14 +95,16 @@ int main(int argc, char* argv[])
   
   // --------------- Dumper ----------------
   // Creates file to write data to
-  std::string file_name = "output.csv"; 
-  std::ofstream outputFile(file_name.c_str());
- 
+  std::string file_name = argv[2];
+  std::ofstream outputFile;
+  /*
+  outputFile.open(file_name.c_str());
   outputFile.precision(10);
   outputFile << "t,px,py" << std::endl;
   for (int k = 0; k < nbBodies;k++) 
       outputFile << 0 << "," << positions[2*k] << "," <<  positions[2*k+1] << std::endl;
-  
+  */
+
   // --------------- Time iterations ----------------
   double dt = 0.1;
   double time_max = 0.1;  
@@ -111,8 +113,7 @@ int main(int argc, char* argv[])
   
   for (; t < time_max; t += dt)
   {            
-      //if (t % (10*24*60*60) == 0)
-      std:: cout << "At time: " << t+dt << std::endl;
+      //std:: cout << "At time: " << t+dt << std::endl;
 	   
       for(int i = 0; i < nbBodies; i++)
       {	  
@@ -125,20 +126,17 @@ int main(int argc, char* argv[])
 		  velocities[2*i+1] += dt * (positions_fixed[2*j+1] - positions[2*i+1]) * G*mass[j]/(distance*distance*distance);
 	      }
 	  }
-	  
 	  positions[2*i] += dt * velocities[2*i];
-	  positions[2*i+1] += dt * velocities[2*i+1];
-	  
-	  
+	  positions[2*i+1] += dt * velocities[2*i+1];	  	  
       }
       positions_fixed = positions;
       
-      for (int k = 0; k < nbBodies;k++) 
-	  outputFile << t+dt << "," << positions[2*k] << "," <<  positions[2*k+1] << std::endl;	 
+      //for (int k = 0; k < nbBodies;k++) 
+      //    outputFile << t+dt << "," << positions[2*k] << "," <<  positions[2*k+1] << std::endl;	 
   }
   
       // --------------- Finalization  ----------------
-  outputFile.close(); 
+  //outputFile.close(); 
   double total_time = (std::clock() - start) / (double) CLOCKS_PER_SEC;
   std::cout << "time taken: " << total_time  << std::endl;
 }
