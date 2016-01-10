@@ -1,11 +1,11 @@
-All the calculations and measurements where performed on Deneb. In order to observe the effects of distributed memory nodes (and not shared memory nodes), the computations where performed using 1 process per node. The CPU which are used are either: 2.6GHz with 64GB of DDR3 RAM, or 2.5 GHz with 64GB of DDR4 RAM. The assignment to each node is unknown, hence the computations can be done on either of the two different CPUs, or a combination of both CPU types for multiple nodes. The speedups are all calculated based on the time required to compute one time iteration for the N-body problem, hence it is the time taken to finish the first synchronization step shown in Figure \ref{fig:timing}.\\
+All the calculations and measurements where performed on Deneb. In order to observe the effects of distributed memory nodes (and not shared memory nodes), the computations where performed using 1 process per node. The CPUs which are used are either: 2.6GHz with 64GB of DDR3 RAM, or 2.5 GHz with 64GB of DDR4 RAM. The assignment to each node is unknown, hence the computations can be done on either of the two different CPUs, or a combination of both CPU types for multiple nodes. The speedups are all calculated based on the time required to compute one time iteration for the N-body problem, hence it is the time taken to finish the first synchronization step shown in Figure \ref{fig:timing}.\\
 \subsection{Brute-force performance}
-As the brute-force approach is very expensive in computations, the speeds are very good. In Figure \ref{fig:speedup:bf} the theoretical speedup is shown along with the measured ones. Up to 64 nodes, the theoretical speedup is still linear, and the measured speedup follows this path closely. When the number of nodes gets larger than 20, there is slight jump downwards in the speedup values for the simulation with $10^6$ bodies. This comes from the different computation times, observable in Table \ref{tab:bf:10e6}. Since two different CPUs can be used, with different clock rates and RAM access speeds, the same computation will take slightly different times. This is not observable for the simulation with fewer bodies, but becomes significant for large numbers of bodies. In Figure \ref{fig:bf:computeTimes} the parallel compute times normalized by the serial compute times are shown. Two groups of compute times stand out, most certainly based on the two different CPUs.\\
+As the brute-force approach is very expensive in computations, the speeds are very good. In Figure \ref{fig:speedup:bf} the theoretical speedup is shown along with the measured ones. Up to 64 nodes, the theoretical speedup is still linear, and the measured speedup follows this path closely. When the number of nodes gets larger than 20, there is slight jump downwards in the speedup values for the simulation with $10^6$ bodies. This comes from the different computation times, observable in Table \ref{tab:bf:10e6}. Since two different CPUs can be used, with different clock rates and RAM access speeds, the same computation will take slightly different times. This is not observable for the simulation with fewer bodies, but becomes significant for large numbers of bodies. In Figure \ref{fig:bf:computeTimes} the parallel compute times normalized by the serial compute times are shown. Two groups of compute times stand out, most certainly based on the two different CPUs. The measurement of the serial execution time is performed on either node, hence this can also be a cause for unexpected speedup graphs.\\
 
 \begin{figure}
 \centering
 \input{../figures/speedup_bf.tex}
-\caption{Speedup chart for the brute-force approach.}
+\caption{Speedup chart for the brute-force approach. The serial execution times are the following $10^5$ bodies: $t_{serial} = 453s$, $10^6$ bodies: $t_{serial} = 44'875s$.}
 \label{fig:speedup:bf}
 \end{figure}
 
@@ -42,15 +42,15 @@ As the brute-force approach is very expensive in computations, the speeds are ve
 %\caption{$10^5$ bodies}
 %\end{table}
 \subsection{Barnes-Hut performance}
-The speedup measurements for the Barnes-Hut algorithm follow the theoretical speedup, as long as the problem size is larger enough for the number of nodes. For $10^6$ bodies, 32 nodes is still interesting, but the measured speedup starts to leave the theoretical estimation. There is an odd bump in the speedup measurements for 12, 16 and 20 nodes. This could be due to the different CPUs as mentioned previously, or the load balancing is not sufficiently reliable. The second aspect is discussed in the following section. For the simulations with $10^5$, from 16 nodes it is clear that the problem is too small for the number of nodes which is used. The speedup does not go pas the value of 10, and would certainly even decrease for even larger numbers of nodes.\\
+The speedup measurements for the Barnes-Hut algorithm follow the theoretical speedup, as long as the problem size is larger enough for the number of nodes. For $10^6$ bodies, 32 nodes is still interesting, but the measured speedup starts to leave the theoretical estimation. There is an odd bump in the speedup measurements for 12, 16 and 20 nodes. This could be due to the different CPUs as mentioned previously, or the load balancing is not sufficiently reliable. This second aspect is discussed in the following section. For the simulations with $10^5$, from 16 nodes it is clear that the problem is too small for the number of nodes which is used. The speedup does not go past the value of 10, and would certainly even decrease for even larger numbers of nodes.\\
 The issue with the Barnes-Hut algorithm in parallel is the load balancing of each node. In Tables \ref{tab:qt:10e5} and \ref{tab:qt:10e6}, the standard deviations of the computation times are reported next to the mean values. For both problem sizes, the variations stabilize for the larger number of nodes. This means that as the computation time gets reduced, the idle time of the nodes waiting for the slowest node to finish will become significant.
-\begin{figure}
+\begin{figure}[h]
 \centering
 \input{../figures/speedup_qt.tex}
-\caption{Speedup chart for the quad-tree approach.}
+\caption{Speedup chart for the quad-tree approach. The serial execution times are the following $t_{serial} = 9.8s$, $10^6$ bodies: $t_{serial} = 101s$.}
 \end{figure}
 
-\begin{table}
+\begin{table}[h]
   \begin{adjustwidth}{-1.5cm}{-1.5cm}       
     \centering
     \begin{tabular}{l|cccccccccc}
@@ -66,7 +66,7 @@ The issue with the Barnes-Hut algorithm in parallel is the load balancing of eac
   \end{adjustwidth}
 \end{table}
 
-\begin{table}
+\begin{table}[h]
   \begin{adjustwidth}{-1.5cm}{-1.5cm}   
 \centering
 \begin{tabular}{l|cccccccccc}
@@ -83,8 +83,8 @@ sync. [s] & 0.015 & 0.015 & 0.019 & 0.025 & 0.026 & 0.026 & 0.031 & 0.029 & 0.02
 \end{table}
 \newpage
 \subsection{Load balancing performance}
-In Figure \ref{fig:computeTimes:allnodes}, the computation time for each time step, for each node is shown. The node assignment is performed according to the algorithm presented previously. The setup for this simulation is two masses of $1500$ bodies each, which are destined to collide at some point. For the first phase, while the two masses are compact and the bodies are attracted to the respective centers, the computation increases on all nodes since the bodies are getting closer and close together. Once the bodies start to move away from the centers, some will leave the gravitational field of the local system due to numerical integration errors over time, whilst the others will start gravitating around the heavy body located in the respective centers. Once the bodies are spread out in space randomly, the load balancing becomes critical.\\
-The second node ($node_1$), has more a longer computation time than the other nodes until iteration $\#$ 3800. This is the case since it has been assigned approximately 750 nodes which are much closer together than the bodies assigned to the other nodes. Indeed, if a group of 100 bodies is close together, than it will take more computations to calculate their interactions than 100 bodies which are far apart. The same applies to one group of 100 bodies, or 10 groups of 10 bodies. Therefore the actual node assignment is acceptable, but could be improved by taking into account the density of bodies as well.\\
+In Figure \ref{fig:computeTimes:allnodes}, the computation time for each time step, for each node is shown. The node assignment is performed according to the algorithm presented previously. The setup for this simulation is two groups of $1500$ bodies each, which are destined to collide at some point. For the first phase, while the two masses are compact and the bodies are attracted to the respective centers, the computation time increases on all nodes since the bodies are getting closer and closer together. Once the bodies start to move away from the centers, some will leave the gravitational field of the local system due to numerical integration errors over time, whilst the others will start gravitating around the heavy body located in the respective centers. Once the bodies are spread out in space randomly, the load balancing becomes critical.\\
+The second node ($node_1$), has a longer computation time than the other nodes until iteration $\#$ 3800. This is the case since it has been assigned approximately 750 nodes which are much closer together than the bodies assigned to the other nodes. Indeed, if a group of 100 bodies is close together, than it will take more computations to calculate their interactions than 100 bodies which are far apart. The same applies to one group of 100 bodies, or 10 groups of 10 bodies. Therefore the actual node assignment is acceptable, but could be improved by taking into account the density of bodies as well.\\
 \begin{figure}[H]
 \centering
 \input{../figures/timing_two_nodes.tex}
@@ -92,7 +92,7 @@ The second node ($node_1$), has more a longer computation time than the other no
 \label{fig:computeTimes:allnodes}
 \end{figure}
 \newpage
-When considering nodes 0 and 1 (black and blue lines), between iterations $\#4500$ and $\#6000$, the effect of assign a group of bodies can be observed, see Figure \ref{fig:computeTimes2Nodes:zoom}. As a group of bodies which are compact are assigned either nodes 0 or 1, the compute time jumps. This happens since this groups of bodies is time consuming to calculate, and will create an in balance in the nodes if poorly assigned. The limits of assigning the bodies only by space position, and not density, stand out here. To solve this issue, one could implement a body assignment strategy which takes into account the number of bodies which must be assigned and also the density of bodies. Each node could be given a capacity expressed in $nbBodies \cdot density$ to solve this issue.
+When considering nodes 0 and 1 (black and blue lines), between iterations $\#4500$ and $\#6000$, the effect of assigning a group of bodies can be observed, see Figure \ref{fig:computeTimes2Nodes:zoom}. As a group of bodies which are compact are assigned either nodes 0 or 1, the compute time jumps. This happens since this group of bodies is time consuming to calculate, and will create an inbalance in the nodes if poorly assigned. The limits of assigning the bodies only by space position, and not density, stands out here. To solve this issue, one could implement a body assignment strategy which takes into account the number of bodies which must be assigned and also the density of bodies. Each node could be given a capacity expressed in $nbBodies \cdot density$ to solve this issue.
 \begin{figure}[h]
 \centering
 \input{../figures/timing_two_masses_zoom.tex}

@@ -1,0 +1,4 @@
+\section{Conclusion}
+Through this project, the implementation and execution of a parallel code has been done. The challenges lie in keeping all nodes performing approximately the same amount of work, and not wasting time while idling. The analysis of the performance of the code lead to the observation that simply parallelizing a code and calling \textit{mpirun -np 2000 exec} is far from trivial and can lead to counter productive results.\\
+The load balancing is a critical aspect of any parallel code and must be dealt with appropriately. As implemented for this project, the node assignment is acceptable if the total work is not split between too many nodes. Improvements should be made if high performance is required.\\
+As observed with the results for the brute-force approach, implementing a serial version of a good algorithm is far more beneficial than parallelizing a straight forward one.
